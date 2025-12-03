@@ -8,10 +8,9 @@
     <!-- MOBILE APP CONFIGURATION -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#0f172a">
+    <meta name="theme-color" content="#1e293b">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/628/628283.png">
-    <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiQmFsY29ueSBHYXJkZW4iLCJzaG9ydF9uYW1lIjoiR2FyZGVuIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiIzJmM2UzMCIsInRoZW1lX2NvbG9yIjoiIzJmM2UzMCIsImljb25zIjpbeyJzcmMiOiJodHRwczovL2Nkbi1pY29ucy1wbmcuZmxhdGljb24uY29tLzUxMi82MjgvNjI4MjgzLnBuZyIsInNpemVzIjoiMTkyeDE5MiIsInR5cGUiOiJpbWFnZS9wbmcifV19">
-
+    
     <script src="https://cdn.tailwindcss.com"></script>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -24,7 +23,7 @@
     
     <style>
         :root {
-            --bg-color: #0f172a;
+            --bg-color: #1e293b;
             --card-bg: #fdfbf7; 
             --accent-wood: #78350f;
         }
@@ -33,346 +32,538 @@
             font-family: 'Nunito', sans-serif;
             color: #e2e8f0;
             overscroll-behavior-y: none;
+            -webkit-tap-highlight-color: transparent;
         }
         h1, h2, h3, .pixel-font { font-family: 'VT323', monospace; text-transform: uppercase; letter-spacing: 0.05em; }
         .card-shadow { box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.3); border-bottom: 3px solid #0f172a; border-right: 3px solid #0f172a; }
-        
-        .wood-btn {
-            background-color: #92400e;
-            border: 2px solid #451a03;
-            border-bottom-width: 4px;
-            color: #fef3c7;
-            text-shadow: 1px 1px 0 #451a03;
-        }
+        .wood-btn { background-color: #92400e; border: 2px solid #451a03; border-bottom-width: 4px; color: #fef3c7; text-shadow: 1px 1px 0 #451a03; }
         .wood-btn:hover { background-color: #b45309; }
         .wood-btn:active { transform: translateY(2px); border-bottom-width: 2px; }
-
         .library-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
         .library-scroll::-webkit-scrollbar-track { background: #334155; }
         .library-scroll::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 2px; }
         
-        /* Animations */
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
         @keyframes twinkle { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
-        @keyframes drift { from { transform: translateX(-150%); } to { transform: translateX(600%); } }
+        
+        /* MOVEMENT ACROSS SCREEN (X-Axis) */
+        @keyframes drift { from { transform: translateX(-20vw); } to { transform: translateX(120vw); } }
+        @keyframes drift-reverse { from { transform: translateX(120vw); } to { transform: translateX(-20vw); } }
+        
+        /* BUG PAUSE ANIMATIONS (Move, Stop, Move) */
+        @keyframes drift-pause-early { 
+            0% { transform: translateX(-10vw); } 
+            30% { transform: translateX(25vw); } 
+            45% { transform: translateX(25vw); } /* Pause to check plants */
+            100% { transform: translateX(120vw); } 
+        }
+        @keyframes drift-pause-late { 
+            0% { transform: translateX(-10vw); } 
+            60% { transform: translateX(70vw); } 
+            75% { transform: translateX(70vw); } /* Pause to check plants */
+            100% { transform: translateX(120vw); } 
+        }
+
+        /* LOCAL CREATURE MOVEMENT (Y-Axis / Rotation / Scale) */
+        @keyframes fly { 
+            0% { transform: translateY(0) rotate(0deg); } 
+            25% { transform: translateY(-5px) rotate(5deg); } 
+            50% { transform: translateY(0) rotate(0deg); } 
+            75% { transform: translateY(5px) rotate(-5deg); } 
+            100% { transform: translateY(0) rotate(0deg); } 
+        }
+        @keyframes flutter {
+            0%, 100% { transform: translateY(0) scaleX(1); }
+            50% { transform: translateY(-15px) scaleX(0.7); }
+        }
+        @keyframes buzz {
+            0% { transform: translate(0, 0); }
+            25% { transform: translate(2px, -2px); }
+            50% { transform: translate(0, -4px); }
+            75% { transform: translate(-2px, -2px); }
+            100% { transform: translate(0, 0); }
+        }
+        @keyframes flap {
+            0%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(0.1); }
+        }
+        
         @keyframes growUp { 0% { transform: scaleY(0); opacity: 0; } 100% { transform: scaleY(1); opacity: 1; } }
         @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 80% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        @keyframes sway { 0%, 100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
-        @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        /* Sway only the plant parts, anchored at bottom */
+        @keyframes sway { 
+            0%, 100% { transform: rotate(-3deg); } 
+            50% { transform: rotate(3deg); } 
+        }
+        .animate-sway { 
+            transform-origin: center bottom; 
+            animation: sway 4s ease-in-out infinite; 
+        }
 
         .animate-float { animation: float 3s ease-in-out infinite; }
         .animate-twinkle { animation: twinkle 3s ease-in-out infinite; }
-        .animate-drift { animation: drift 80s linear infinite; }
-        .animate-drift-fast { animation: drift 40s linear infinite; }
-        .animate-drift-slow { animation: drift 120s linear infinite; }
+        
+        /* CLOUD SPEEDS */
+        .animate-drift { animation: drift 100s linear infinite; }
+        .animate-drift-fast { animation: drift 60s linear infinite; }
+        .animate-drift-slow { animation: drift 150s linear infinite; }
+        .animate-drift-slower { animation: drift 200s linear infinite; }
+        
+        /* ANIMAL SPEEDS (Crossing Screen) */
+        .crossing-fast { animation: drift 15s linear infinite; }
+        .crossing-med { animation: drift 25s linear infinite; }
+        .crossing-slow { animation: drift 35s linear infinite; }
+        
+        .crossing-reverse-fast { animation: drift-reverse 15s linear infinite; }
+        .crossing-reverse-med { animation: drift-reverse 25s linear infinite; }
+        .crossing-reverse-slow { animation: drift-reverse 35s linear infinite; }
+        
+        /* BUG VISITING SPEEDS */
+        .visiting-early { animation: drift-pause-early 45s linear infinite; }
+        .visiting-late { animation: drift-pause-late 60s linear infinite; }
+
+        /* LOCAL ANIMATIONS (Applied to inner element) */
+        .local-fly { animation: fly 2s ease-in-out infinite; }
+        .local-fly-slow { animation: fly 3s ease-in-out infinite; }
+        .local-flutter { animation: flutter 0.2s ease-in-out infinite; }
+        .local-buzz { animation: buzz 0.1s linear infinite; }
+        .wing-flap { transform-origin: center 5px; animation: flap 0.2s infinite; }
+        
         .animate-grow { transform-origin: bottom center; animation: growUp 0.8s ease-out forwards; }
         .animate-pop { animation: popIn 0.5s ease-out forwards; }
         .animate-slide-up { animation: slideUp 0.3s ease-out forwards; }
-        .animate-sway { transform-origin: bottom center; animation: sway 3s ease-in-out infinite; }
+        .animate-fade-in { animation: fadeIn 0.2s ease-out forwards; }
         .animate-spin-slow { animation: spin-slow 20s linear infinite; }
+        @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         
-        .pixel-art { image-rendering: pixelated; }
+        .pixel-art { image-rendering: pixelated; shape-rendering: crispEdges; }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+        const { useState, useEffect, useRef, useMemo } = React;
 
         // --- POT MODIFIERS ---
-        // Lower Mod = Dries Faster (Water More Often)
         const CONTAINER_MATERIALS = [
-            { label: "Plastic", waterMod: 1.0, fertMod: 1.0 },
-            { label: "Terra Cotta (Clay)", waterMod: 0.6, fertMod: 0.8 }, 
-            { label: "Fabric / Grow Bag", waterMod: 0.65, fertMod: 0.7 }, 
-            { label: "Ceramic (Glazed)", waterMod: 1.1, fertMod: 1.0 },
-            { label: "Self-Watering", waterMod: 1.6, fertMod: 1.2 }, 
+            { label: "Plastic", waterMod: 1.2, fertMod: 1.0 }, 
+            { label: "Terra Cotta (Clay)", waterMod: 0.7, fertMod: 0.9 }, 
+            { label: "Fabric / Grow Bag", waterMod: 0.8, fertMod: 0.85 }, 
+            { label: "Ceramic (Glazed)", waterMod: 1.3, fertMod: 1.0 }, 
+            { label: "Self-Watering", waterMod: 2.0, fertMod: 1.1 }, 
             { label: "Wood Box", waterMod: 1.1, fertMod: 1.0 },
             { label: "Metal", waterMod: 0.9, fertMod: 1.0 } 
         ];
 
-        // Smaller = Dries Faster
         const CONTAINER_SIZES = [
-            { label: "Small (< 1 Gal)", waterMod: 0.5, fertMod: 0.9 }, 
-            { label: "1 Gallon", waterMod: 0.7, fertMod: 0.9 },
-            { label: "2 Gallon", waterMod: 0.8, fertMod: 0.95 },
-            { label: "3 Gallon", waterMod: 1.0, fertMod: 1.0 }, // Baseline
-            { label: "4 Gallon", waterMod: 1.1, fertMod: 1.0 },
-            { label: "5 Gallon", waterMod: 1.2, fertMod: 1.05 },
-            { label: "7 Gallon", waterMod: 1.35, fertMod: 1.1 },
-            { label: "10 Gallon", waterMod: 1.5, fertMod: 1.2 }
+            { label: "Small (< 1 Gal)", waterMod: 0.7, fertMod: 0.8 }, 
+            { label: "1 Gallon", waterMod: 0.8, fertMod: 0.9 },
+            { label: "2 Gallon", waterMod: 0.9, fertMod: 0.95 },
+            { label: "3 Gallon", waterMod: 1.0, fertMod: 1.0 }, 
+            { label: "5 Gallon", waterMod: 1.3, fertMod: 1.0 },
+            { label: "7 Gallon", waterMod: 1.5, fertMod: 1.1 },
+            { label: "10 Gallon", waterMod: 1.8, fertMod: 1.1 },
+            { label: "15+ Gallon", waterMod: 2.2, fertMod: 1.2 }
         ];
 
         // --- PLANT LIBRARY ---
-        // waterFreq: Baseline days for 3 Gal Plastic Pot
+        // Expanded with massive dataset of Peppers, Tomatoes, Veg, Fruit, Berries, Flowers
         const PLANT_LIBRARY = [
-            // Herbs
-            { name: "Basil (Genovese)", type: "herb", waterFreq: 3, fertilizerFreq: 14, notes: "Pinch flowers.", tip: "Harvest often to prevent bolting." },
-            { name: "Basil (Thai)", type: "herb", waterFreq: 3, fertilizerFreq: 14, notes: "Spicier flavor.", tip: "Great for heat." },
-            { name: "Chives", type: "grass", waterFreq: 4, fertilizerFreq: 30, notes: "Hardy perennial.", tip: "Divide clumps every 2-3 years." },
-            { name: "Cilantro", type: "herb", waterFreq: 3, fertilizerFreq: 14, notes: "Bolts in heat.", tip: "Plant seeds every 2 weeks." },
-            { name: "Mint (Chocolate)", type: "herb", waterFreq: 2, fertilizerFreq: 30, notes: "Peppermint scent.", tip: "Keep in a pot! Invasive." },
-            { name: "Mint (Mojito)", type: "herb", waterFreq: 2, fertilizerFreq: 30, notes: "Invasive roots!", tip: "Re-pot annually." },
-            { name: "Oregano", type: "herb", waterFreq: 5, fertilizerFreq: 30, notes: "Drought tolerant.", tip: "Best flavor before flowering." },
-            { name: "Parsley", type: "herb", waterFreq: 3, fertilizerFreq: 21, notes: "Biennial.", tip: "Taproot needs deep pot." },
-            { name: "Rosemary", type: "bush", waterFreq: 7, fertilizerFreq: 0, notes: "Hates wet feet.", tip: "Never overwater." },
-            { name: "Thyme", type: "herb", waterFreq: 5, fertilizerFreq: 0, notes: "Low maint.", tip: "Trim often." },
-            // Veg
-            { name: "Lettuce (Leaf)", type: "leafy", waterFreq: 2, fertilizerFreq: 14, notes: "Shallow roots.", tip: "Harvest outer leaves." },
-            { name: "Spinach", type: "leafy", waterFreq: 2, fertilizerFreq: 14, notes: "Cold crop.", tip: "Bolts in heat." },
-            { name: "Swiss Chard", type: "leafy", waterFreq: 3, fertilizerFreq: 21, notes: "Heat tolerant.", tip: "Harvest stalks from outside." },
-            { name: "Pepper (Bell)", type: "pepper", waterFreq: 3, fertilizerFreq: 14, notes: "Heavy feeder.", tip: "Needs calcium." },
-            { name: "Pepper (Jalapeno)", type: "pepper", waterFreq: 4, fertilizerFreq: 14, notes: "Mild heat.", tip: "Less water = hotter peppers." },
-            { name: "Pepper (Thai)", type: "pepper", waterFreq: 3, fertilizerFreq: 14, notes: "Very hot.", tip: "Dry for spice flakes." },
-            { name: "Tomato (Cherry)", type: "tomato", waterFreq: 1, fertilizerFreq: 14, notes: "Thirsty.", tip: "Prune suckers." },
-            { name: "Tomato (Black Cherry)", type: "tomato", waterFreq: 1, fertilizerFreq: 14, notes: "Heirloom dark.", tip: "Complex, smoky flavor." },
-            { name: "Tomato (Roma)", type: "tomato", waterFreq: 2, fertilizerFreq: 14, notes: "Determinate.", tip: "Great for sauces." },
-            { name: "Potato (Yukon Gold)", type: "root", waterFreq: 3, fertilizerFreq: 14, notes: "Hill soil.", tip: "Harvest when tops die back." },
-            { name: "Potato (Russet)", type: "root", waterFreq: 3, fertilizerFreq: 14, notes: "Deep container.", tip: "Needs lots of soil depth." },
-            { name: "Carrots", type: "root", waterFreq: 3, fertilizerFreq: 21, notes: "Sandy soil.", tip: "Thin seedlings ruthlessly." },
-            { name: "Radishes", type: "root", waterFreq: 2, fertilizerFreq: 0, notes: "Fast crop.", tip: "Spicy in hot weather." },
-            { name: "Zucchini", type: "bush", waterFreq: 1, fertilizerFreq: 14, notes: "Heavy feeder.", tip: "Hand pollination helps." },
-            // Fruits & Berries
-            { name: "Strawberry (June)", type: "berry", waterFreq: 2, fertilizerFreq: 14, notes: "One big crop.", tip: "Keep fruit off soil." },
-            { name: "Strawberry (Alpine)", type: "berry", waterFreq: 2, fertilizerFreq: 21, notes: "Small & sweet.", tip: "Tolerates shade." },
-            { name: "Raspberry (Dwarf)", type: "bush", waterFreq: 2, fertilizerFreq: 30, notes: "Container variety.", tip: "Prune old canes." },
-            { name: "Blackberry (Dwarf)", type: "bush", waterFreq: 3, fertilizerFreq: 30, notes: "Thornless.", tip: "Needs full sun." },
-            { name: "Blueberry (Bush)", type: "bush", waterFreq: 2, fertilizerFreq: 30, notes: "Acidic soil!", tip: "Use azalea fertilizer." },
-            { name: "Fig (Petite)", type: "tree", waterFreq: 3, fertilizerFreq: 30, notes: "Restrict roots.", tip: "Loves heat." },
-            { name: "Mulberry (Dwarf)", type: "tree", waterFreq: 3, fertilizerFreq: 30, notes: "Fast grower.", tip: "Prune to keep small." },
-            { name: "Cherry (Dwarf)", type: "tree", waterFreq: 4, fertilizerFreq: 60, notes: "Self-pollinating.", tip: "Needs winter chill." },
-            { name: "Kumquat", type: "tree", waterFreq: 3, fertilizerFreq: 30, notes: "Eat skin & all.", tip: "Heavy feeder." },
-            { name: "Lemon (Meyer)", type: "tree", waterFreq: 3, fertilizerFreq: 30, notes: "Citrus food.", tip: "Bring indoors in winter." }
+            // --- 1. PEPPERS (Capsicum) ---
+            // Sweet
+            { name: "Bell Pepper (California Wonder)", type: "pepper", waterFreq: 4, fertilizerFreq: 14, notes: "Blocky, thick walls.", tip: "Support heavy fruit." },
+            { name: "Bell Pepper (Purple Beauty)", type: "pepper", waterFreq: 4, fertilizerFreq: 14, notes: "Turns deep purple.", tip: "Heat sensitive." },
+            { name: "Sweet Pepper (Carmen)", type: "pepper", waterFreq: 4, fertilizerFreq: 14, notes: "Italian frying type.", tip: "Very productive." },
+            { name: "Sweet Pepper (Banana)", type: "pepper", waterFreq: 3, fertilizerFreq: 14, notes: "Long yellow wax.", tip: "Pick early for mild." },
+            { name: "Shishito Pepper", type: "pepper", waterFreq: 4, fertilizerFreq: 14, notes: "Japanese wrinkly.", tip: "1 in 10 are hot!" },
+            // Mild/Medium
+            { name: "Poblano (Ancho)", type: "pepper", waterFreq: 5, fertilizerFreq: 14, notes: "Heart shaped, dark.", tip: "Great for stuffing." },
+            { name: "Jalapeno (Early)", type: "pepper", waterFreq: 5, fertilizerFreq: 14, notes: "Classic heat.", tip: "Corking lines = ripe." },
+            { name: "Serrano", type: "pepper", waterFreq: 5, fertilizerFreq: 14, notes: "Hotter than Jalapeno.", tip: "Eat green or red." },
+            { name: "Cayenne (Long Slim)", type: "pepper", waterFreq: 6, fertilizerFreq: 14, notes: "Dries easily.", tip: "Very spicy." },
+            // Super Hot
+            { name: "Habanero (Orange)", type: "pepper", waterFreq: 6, fertilizerFreq: 14, notes: "Fruity heat.", tip: "Slow to germinate." },
+            { name: "Ghost Pepper (Bhut Jolokia)", type: "pepper", waterFreq: 6, fertilizerFreq: 14, notes: "Extreme heat.", tip: "Needs long season." },
+            { name: "Carolina Reaper", type: "pepper", waterFreq: 6, fertilizerFreq: 14, notes: "Record holder heat.", tip: "Handle with gloves." },
+
+            // --- 2. TOMATOES ---
+            // Cherry/Grape
+            { name: "Tomato (Sweet 100)", type: "tomato", waterFreq: 2, fertilizerFreq: 14, notes: "Clusters of small fruit.", tip: "Indeterminate (tall)." },
+            { name: "Tomato (Sun Gold)", type: "tomato", waterFreq: 2, fertilizerFreq: 14, notes: "Orange, very sweet.", tip: "Cracks if overwatered." },
+            { name: "Tomato (Yellow Pear)", type: "tomato", waterFreq: 2, fertilizerFreq: 14, notes: "Low acid, mild.", tip: "Vigorous vines." },
+            { name: "Tomato (Black Cherry)", type: "tomato", waterFreq: 2, fertilizerFreq: 14, notes: "Complex, smoky flavor.", tip: "Heat tolerant." },
+            // Paste
+            { name: "Tomato (Roma VF)", type: "tomato", waterFreq: 3, fertilizerFreq: 14, notes: "Determinate (bushy).", tip: "Good for canning." },
+            { name: "Tomato (San Marzano)", type: "tomato", waterFreq: 2, fertilizerFreq: 14, notes: "Classic sauce tomato.", tip: "Prone to blossom rot." },
+            // Slicing/Beefsteak
+            { name: "Tomato (Early Girl)", type: "tomato", waterFreq: 3, fertilizerFreq: 14, notes: "Reliable, fast.", tip: "Dry farming possible." },
+            { name: "Tomato (Better Boy)", type: "tomato", waterFreq: 2, fertilizerFreq: 14, notes: "Hybrid, disease resistant.", tip: "Cage heavily." },
+            { name: "Tomato (Cherokee Purple)", type: "tomato", waterFreq: 3, fertilizerFreq: 14, notes: "Heirloom, rich taste.", tip: "Thin skin." },
+            { name: "Tomato (Brandywine)", type: "tomato", waterFreq: 3, fertilizerFreq: 14, notes: "Potato leaf, giant fruit.", tip: "Low yield but tasty." },
+            { name: "Tomato (Green Zebra)", type: "tomato", waterFreq: 3, fertilizerFreq: 14, notes: "Tart and tangy.", tip: "Ripe when yellow-green." },
+            { name: "Tomato (Burmese Sour)", type: "tomato", waterFreq: 3, fertilizerFreq: 14, notes: " distinct sour flavor.", tip: "Great for curries." },
+            // Dwarf
+            { name: "Tomato (Tiny Tim)", type: "tomato", waterFreq: 2, fertilizerFreq: 14, notes: "Micro dwarf.", tip: "Great for windowsills." },
+
+            // --- 3. VEGETABLES ---
+            // Cruciferous
+            { name: "Broccoli (Calabrese)", type: "leafy", waterFreq: 3, fertilizerFreq: 21, notes: "Cool season.", tip: "Harvest main head first." },
+            { name: "Cauliflower (Snowball)", type: "leafy", waterFreq: 3, fertilizerFreq: 21, notes: "Needs blanching.", tip: "Sensitive to heat." },
+            { name: "Kale (Lacinato/Dino)", type: "leafy", waterFreq: 4, fertilizerFreq: 21, notes: "Dark blue-green.", tip: "Gets sweeter after frost." },
+            { name: "Brussels Sprouts", type: "leafy", waterFreq: 4, fertilizerFreq: 21, notes: "Long season.", tip: "Remove lower leaves." },
+            { name: "Bok Choy", type: "leafy", waterFreq: 2, fertilizerFreq: 14, notes: "Fast growing.", tip: "Bolts in heat." },
+            // Roots
+            { name: "Carrot (Danvers)", type: "root", waterFreq: 4, fertilizerFreq: 21, notes: "Standard orange.", tip: "Loose soil essential." },
+            { name: "Carrot (Purple Haze)", type: "root", waterFreq: 4, fertilizerFreq: 21, notes: "Purple skin, orange core.", tip: "Antioxidant rich." },
+            { name: "Radish (Cherry Belle)", type: "root", waterFreq: 2, fertilizerFreq: 0, notes: "Ready in 25 days.", tip: "Spicy in heat." },
+            { name: "Beet (Detroit Dark Red)", type: "root", waterFreq: 3, fertilizerFreq: 21, notes: "Edible greens too.", tip: "Thin seedlings." },
+            { name: "Onion (Sweet)", type: "root", waterFreq: 4, fertilizerFreq: 21, notes: "Short storage.", tip: "Nitrogen lover." },
+            { name: "Garlic (Hardneck)", type: "root", waterFreq: 5, fertilizerFreq: 30, notes: "Plant in fall.", tip: "Harvest scapes." },
+            { name: "Potato (Yukon Gold)", type: "root", waterFreq: 4, fertilizerFreq: 21, notes: "Buttery flesh.", tip: "Hilling required." },
+            // Legumes
+            { name: "Green Bean (Bush)", type: "bush", waterFreq: 3, fertilizerFreq: 30, notes: "No trellis needed.", tip: "Succession plant." },
+            { name: "Peas (Sugar Snap)", type: "vine", waterFreq: 3, fertilizerFreq: 30, notes: "Edible pod.", tip: "Cool weather crop." },
+            // Cucurbits
+            { name: "Zucchini (Black Beauty)", type: "bush", waterFreq: 2, fertilizerFreq: 14, notes: "Very productive.", tip: "Check daily." },
+            { name: "Cucumber (Marketmore)", type: "vine", waterFreq: 2, fertilizerFreq: 14, notes: "Slicing type.", tip: "Needs trellis." },
+            { name: "Pumpkin (Sugar Pie)", type: "vine", waterFreq: 3, fertilizerFreq: 14, notes: "Baking pumpkin.", tip: "Needs heavy feeding." },
+            // Leafy
+            { name: "Lettuce (Romaine)", type: "leafy", waterFreq: 2, fertilizerFreq: 14, notes: "Upright head.", tip: "Heat tolerant." },
+            { name: "Spinach (Bloomsdale)", type: "leafy", waterFreq: 3, fertilizerFreq: 14, notes: "Crinkled leaves.", tip: "Bolts quickly." },
+            { name: "Swiss Chard (Rainbow)", type: "leafy", waterFreq: 4, fertilizerFreq: 21, notes: "Colorful stems.", tip: "Cut and come again." },
+
+            // --- 4. FRUIT TREES (Container Friendly) ---
+            { name: "Lemon (Meyer)", type: "tree", waterFreq: 5, fertilizerFreq: 30, notes: "Sweeter lemon.", tip: "Protect from frost." },
+            { name: "Lime (Key)", type: "tree", waterFreq: 5, fertilizerFreq: 30, notes: "Small tart fruit.", tip: "Thorns present." },
+            { name: "Orange (Moro Blood)", type: "tree", waterFreq: 5, fertilizerFreq: 30, notes: "Red flesh.", tip: "Raspberry notes." },
+            { name: "Kumquat", type: "tree", waterFreq: 5, fertilizerFreq: 30, notes: "Eat whole.", tip: "Very ornamental." },
+            { name: "Apple (Gala Dwarf)", type: "tree", waterFreq: 5, fertilizerFreq: 60, notes: "Crisp sweet.", tip: "Needs pollinator." },
+            { name: "Fig (Brown Turkey)", type: "tree", waterFreq: 4, fertilizerFreq: 30, notes: "Reliable bearer.", tip: "Restrict roots." },
+            { name: "Peach (Dwarf)", type: "tree", waterFreq: 4, fertilizerFreq: 30, notes: "Self-fertile.", tip: "Watch for leaf curl." },
+            { name: "Cherry (Tart)", type: "tree", waterFreq: 5, fertilizerFreq: 60, notes: "Good for pies.", tip: "Bird netting needed." },
+
+            // --- 5. BERRIES ---
+            { name: "Strawberry (June)", type: "berry", waterFreq: 3, fertilizerFreq: 14, notes: "One big crop.", tip: "Mulch with straw." },
+            { name: "Strawberry (Albion)", type: "berry", waterFreq: 3, fertilizerFreq: 14, notes: "Ever-bearing.", tip: "Consistent water." },
+            { name: "Blueberry (Highbush)", type: "bush", waterFreq: 3, fertilizerFreq: 30, notes: "Needs acid soil.", tip: "Pine needle mulch." },
+            { name: "Raspberry (Heritage)", type: "bush", waterFreq: 3, fertilizerFreq: 30, notes: "Fall bearing.", tip: "Prune canes." },
+            { name: "Blackberry (Thornless)", type: "bush", waterFreq: 3, fertilizerFreq: 30, notes: "Vigorous grower.", tip: "Trellis needed." },
+            { name: "Grapes (Table)", type: "vine", waterFreq: 7, fertilizerFreq: 60, notes: "Seedless.", tip: "Heavy pruning winter." },
+
+            // --- 6. EXOTICS ---
+            { name: "Dragon Fruit", type: "cactus", waterFreq: 10, fertilizerFreq: 30, notes: "Vining cactus.", tip: "Needs strong post." },
+            { name: "Passion Fruit", type: "vine", waterFreq: 3, fertilizerFreq: 14, notes: "Beautiful flowers.", tip: "Heavy feeder." },
+            { name: "Pineapple", type: "bromeliad", waterFreq: 7, fertilizerFreq: 30, notes: "Water the cup.", tip: "Takes 18m+." },
+            { name: "Banana (Dwarf Cavendish)", type: "tree", waterFreq: 3, fertilizerFreq: 14, notes: "Heavy waterer.", tip: "Protect from wind." },
+            { name: "Avocado (Dwarf)", type: "tree", waterFreq: 4, fertilizerFreq: 30, notes: "Sensitive roots.", tip: "Good drainage key." },
+            { name: "Ginger", type: "root", waterFreq: 3, fertilizerFreq: 30, notes: "Shallow rhizomes.", tip: "Partial shade." },
+            { name: "Turmeric", type: "root", waterFreq: 3, fertilizerFreq: 30, notes: "Harvest when leaves die.", tip: "Long warm season." },
+
+            // --- 7. FLOWERS ---
+            // Annuals
+            { name: "Petunia (Wave)", type: "flower", waterFreq: 3, fertilizerFreq: 14, notes: "Spreading habit.", tip: "Deadhead for blooms." },
+            { name: "Marigold (French)", type: "flower", waterFreq: 4, fertilizerFreq: 21, notes: "Companion plant.", tip: "Deters nematodes." },
+            { name: "Sunflower (Mammoth)", type: "flower", waterFreq: 3, fertilizerFreq: 14, notes: "Giant height.", tip: "Follows the sun." },
+            { name: "Zinnia", type: "flower", waterFreq: 4, fertilizerFreq: 21, notes: "Cut flower.", tip: "Resists drought." },
+            { name: "Nasturtium", type: "flower", waterFreq: 5, fertilizerFreq: 0, notes: "Edible flowers.", tip: "Poor soil is fine." },
+            { name: "Pansy", type: "flower", waterFreq: 3, fertilizerFreq: 14, notes: "Cold hardy.", tip: "Winter color." },
+            // Perennials/Bulbs
+            { name: "Rose (Knockout)", type: "flower", waterFreq: 4, fertilizerFreq: 30, notes: "Disease resistant.", tip: "Prune spring." },
+            { name: "Lavender (English)", type: "flower", waterFreq: 7, fertilizerFreq: 60, notes: "Fragrant.", tip: "Likes lime/grit." },
+            { name: "Tulip", type: "flower", waterFreq: 7, fertilizerFreq: 0, notes: "Spring bulb.", tip: "Chill bulbs before planting." },
+            { name: "Orchid (Phalaenopsis)", type: "flower", waterFreq: 7, fertilizerFreq: 14, notes: "Epiphyte.", tip: "Do not use soil." },
+            { name: "Bird of Paradise", type: "flower", waterFreq: 7, fertilizerFreq: 30, notes: "Tropical look.", tip: "Crowded roots bloom best." },
+            { name: "Hibiscus (Tropical)", type: "flower", waterFreq: 2, fertilizerFreq: 14, notes: "Huge blooms.", tip: "Thirsty plant." }
         ];
 
+        // --- NATURAL PALETTES ---
         const PALETTES = {
-            healthy: { stem: '#4d7c0f', leafLight: '#4ade80', leafDark: '#15803d', fruit: '#dc2626', fruitAlt: '#eab308', root: '#ea580c' },
-            dry: { stem: '#78350f', leafLight: '#a8a29e', leafDark: '#57534e', fruit: '#78350f', fruitAlt: '#92400e', root: '#9a3412' },
-            hungry: { stem: '#84cc16', leafLight: '#fef08a', leafDark: '#eab308', fruit: '#ef4444', fruitAlt: '#facc15', root: '#f97316' }
+            healthy: { stem: '#5F6F52', leafLight: '#A9B388', leafDark: '#4F6F52', fruit: '#B91C1C', fruitAlt: '#EAB308', root: '#D97706' },
+            dry: { stem: '#78716C', leafLight: '#D6D3D1', leafDark: '#A8A29E', fruit: '#7F1D1D', fruitAlt: '#92400E', root: '#92400E' },
+            hungry: { stem: '#A3E635', leafLight: '#FEF08A', leafDark: '#D9F99D', fruit: '#FCA5A5', fruitAlt: '#FDE047', root: '#FDBA74' }
         };
 
         // --- PIXEL ART SPRITES ---
         const PixelPot = ({ color = "#8B4513" }) => (
-            <g><rect x="6" y="15" width="12" height="7" fill={color} /><rect x="5" y="13" width="14" height="2" fill="#5e2f0d" /><rect x="6" y="15" width="12" height="1" fill="#3f1d07" opacity="0.5"/></g>
+            <g>
+                <rect x="5" y="16" width="14" height="6" fill={color} />
+                <rect x="4" y="14" width="16" height="2" fill="#5e2f0d" />
+                <rect x="6" y="18" width="2" height="2" fill="rgba(0,0,0,0.2)" />
+                <rect x="16" y="18" width="2" height="2" fill="rgba(0,0,0,0.2)" />
+            </g>
         );
 
         const PixelTable = () => (
             <g>
-                <rect x="2" y="19" width="2" height="5" fill="#3f2e18" />
-                <rect x="20" y="19" width="2" height="5" fill="#3f2e18" />
-                <rect x="0" y="19" width="24" height="3" fill="#5c401f" />
-                <rect x="0" y="22" width="24" height="1" fill="#362411" opacity="0.5"/>
+                <rect x="0" y="20" width="24" height="2" fill="#5c401f" />
+                <rect x="0" y="22" width="24" height="1" fill="#3f2e18" />
+                <rect x="2" y="23" width="2" height="1" fill="#3f2e18" />
+                <rect x="20" y="23" width="2" height="1" fill="#3f2e18" />
+                
+                {/* Wood Grain */}
+                <rect x="4" y="20" width="2" height="1" fill="#6d4c21" />
+                <rect x="12" y="21" width="3" height="1" fill="#6d4c21" />
+                <rect x="18" y="20" width="1" height="1" fill="#6d4c21" />
             </g>
         );
 
-        const PixelSun = () => (
-            <svg viewBox="0 0 24 24" width="64" height="64" className="pixel-art animate-spin-slow">
-                <rect x="8" y="8" width="8" height="8" fill="#fcd34d" />
-                <rect x="10" y="4" width="4" height="2" fill="#f59e0b" />
-                <rect x="10" y="18" width="4" height="2" fill="#f59e0b" />
-                <rect x="4" y="10" width="2" height="4" fill="#f59e0b" />
-                <rect x="18" y="10" width="2" height="4" fill="#f59e0b" />
-                <rect x="6" y="6" width="2" height="2" fill="#f59e0b" />
-                <rect x="16" y="6" width="2" height="2" fill="#f59e0b" />
-                <rect x="6" y="16" width="2" height="2" fill="#f59e0b" />
-                <rect x="16" y="16" width="2" height="2" fill="#f59e0b" />
+        const PixelBird = ({ color = "#fef3c7", size=24, style }) => (
+            <svg viewBox="0 0 16 16" width={size} height={size} className="pixel-art absolute opacity-100" style={style}>
+                {/* Body */}
+                <rect x="4" y="6" width="8" height="4" fill={color} />
+                {/* Head */}
+                <rect x="12" y="4" width="2" height="4" fill={color} />
+                {/* Beak */}
+                <rect x="14" y="5" width="2" height="2" fill="#f59e0b" />
+                {/* Wing - Flapping */}
+                <rect className="wing-flap" x="6" y="4" width="4" height="3" fill={color} opacity="0.8" />
+                {/* Tail */}
+                <rect x="0" y="7" width="4" height="2" fill={color} />
+                {/* Eye */}
+                <rect x="12" y="5" width="1" height="1" fill="#1e293b" />
             </svg>
         );
 
-        const PixelMoon = () => (
-            <svg viewBox="0 0 24 24" width="50" height="50" className="pixel-art">
-                <rect x="8" y="4" width="6" height="2" fill="#e2e8f0" />
-                <rect x="6" y="6" width="4" height="2" fill="#e2e8f0" />
-                <rect x="4" y="8" width="4" height="8" fill="#e2e8f0" />
-                <rect x="6" y="16" width="4" height="2" fill="#e2e8f0" />
-                <rect x="8" y="18" width="6" height="2" fill="#e2e8f0" />
-                <rect x="12" y="6" width="4" height="12" fill="#94a3b8" />
+        const PixelButterfly = ({ color = "#f472b6", size=16, style }) => (
+            <svg viewBox="0 0 16 16" width={size} height={size} className="pixel-art absolute opacity-90" style={style}>
+                <rect x="2" y="4" width="4" height="4" fill={color} />
+                <rect x="10" y="4" width="4" height="4" fill={color} />
+                <rect x="7" y="6" width="2" height="6" fill="#1e293b" />
+                <rect x="4" y="9" width="2" height="2" fill={color} />
+                <rect x="10" y="9" width="2" height="2" fill={color} />
             </svg>
         );
 
-        const PixelCloud = ({ opacity = 1 }) => (
-            <svg viewBox="0 0 32 16" width="64" height="32" className="pixel-art" style={{opacity}}>
-                <rect x="8" y="8" width="16" height="6" fill="white" />
-                <rect x="4" y="10" width="4" height="4" fill="white" />
-                <rect x="24" y="10" width="4" height="4" fill="white" />
-                <rect x="8" y="4" width="8" height="4" fill="white" />
-                <rect x="16" y="6" width="6" height="2" fill="white" />
+        const PixelBee = ({ size=12, style }) => (
+            <svg viewBox="0 0 12 12" width={size} height={size} className="pixel-art absolute opacity-100" style={style}>
+                <rect x="2" y="4" width="8" height="4" fill="#fbbf24" />
+                <rect x="4" y="4" width="2" height="4" fill="#451a03" />
+                <rect x="8" y="4" width="2" height="4" fill="#451a03" />
+                <rect x="4" y="2" width="4" height="2" fill="#e2e8f0" opacity="0.6"/>
+                <rect x="5" y="5" width="1" height="1" fill="black" opacity="0.5"/>
             </svg>
         );
 
-        // Plant Visuals
-        const PixelTomato = ({ scale = 1, status = 'healthy', variety = 'standard' }) => {
-            const c = PALETTES[status];
+        // Tall, viny, distinct fruits
+        const Plant_Tomato = ({ c, variety }) => {
             let fc = c.fruit;
-            if (status === 'healthy') {
-                if (variety.includes('black')) fc = '#4a0404'; 
-                if (variety.includes('sun') || variety.includes('atomic')) fc = '#f97316'; 
-            }
+            if(variety.includes('black') || variety.includes('cherokee')) fc = '#3f0c18';
+            if(variety.includes('sun') || variety.includes('orange')) fc = '#f97316';
+            if(variety.includes('green')) fc = '#84cc16';
             return (
-                <svg viewBox="0 0 24 24" width={24*scale} height={24*scale} className="pixel-art animate-sway">
-                    <PixelTable />
-                    <g transform="translate(0, -3)">
-                        <PixelPot />
-                        <rect x="8" y="4" width="1" height="10" fill="#a8a29e" />
-                        <rect x="15" y="4" width="1" height="10" fill="#a8a29e" />
-                        <rect x="8" y="7" width="8" height="1" fill="#a8a29e" />
-                        <rect x="8" y="11" width="8" height="1" fill="#a8a29e" />
-                        <rect x="11" y="5" width="2" height="9" fill={c.stem} />
-                        <rect x="10" y="8" width="4" height="4" fill={c.leafDark} />
-                        <rect x="9" y="6" width="3" height="2" fill={c.leafDark} />
-                        <rect x="10" y="6" width="2" height="2" fill={fc} />
-                        <rect x="13" y="9" width="2" height="2" fill={fc} />
-                        <rect x="9" y="10" width="2" height="2" fill={fc} />
-                    </g>
-                </svg>
+                <g className="animate-sway" style={{transformOrigin: "12px 14px"}}>
+                    <rect x="11" y="6" width="2" height="8" fill={c.stem} />
+                    <rect x="9" y="8" width="2" height="2" fill={c.leafDark} />
+                    <rect x="7" y="9" width="2" height="1" fill={c.leafDark} />
+                    <rect x="13" y="7" width="2" height="2" fill={c.leafDark} />
+                    <rect x="15" y="6" width="2" height="1" fill={c.leafDark} />
+                    <rect x="10" y="5" width="4" height="2" fill={c.leafLight} />
+                    <rect x="10" y="10" width="2" height="2" fill={fc} />
+                    <rect x="13" y="9" width="2" height="2" fill={fc} />
+                    <rect x="11" y="4" width="2" height="2" fill={fc} />
+                </g>
             );
         };
 
-        const PixelPepper = ({ scale = 1, status = 'healthy' }) => {
-            const c = PALETTES[status];
+        // Shrubby, hanging elongated fruits
+        const Plant_Pepper = ({ c, variety }) => {
+            let fc = c.fruit;
+            if(variety.includes('jalapeno') || variety.includes('serrano')) fc = '#15803d';
+            if(variety.includes('habanero') || variety.includes('orange')) fc = '#f97316';
+            if(variety.includes('purple')) fc = '#581c87';
+            if(variety.includes('banana') || variety.includes('wax')) fc = '#fef08a';
+            
             return (
-                <svg viewBox="0 0 24 24" width={24*scale} height={24*scale} className="pixel-art animate-sway">
-                    <PixelTable />
-                    <g transform="translate(0, -3)">
-                        <PixelPot />
-                        <rect x="11" y="10" width="2" height="4" fill={c.stem} />
-                        <rect x="8" y="6" width="8" height="6" fill={c.leafDark} />
-                        <rect x="7" y="8" width="10" height="3" fill={c.leafDark} />
-                        <rect x="9" y="8" width="2" height="3" fill={c.fruit} />
-                        <rect x="13" y="7" width="2" height="3" fill={c.fruitAlt} />
-                    </g>
-                </svg>
+                <g className="animate-sway" style={{transformOrigin: "12px 14px"}}>
+                    <rect x="11" y="8" width="2" height="6" fill={c.stem} />
+                    <rect x="9" y="8" width="2" height="2" fill={c.leafDark} />
+                    <rect x="13" y="9" width="2" height="2" fill={c.leafDark} />
+                    <rect x="10" y="5" width="4" height="3" fill={c.leafLight} />
+                    <rect x="8" y="10" width="2" height="3" fill={fc} />
+                    <rect x="14" y="11" width="2" height="3" fill={fc} />
+                </g>
             );
         };
 
-        const PixelLeafy = ({ scale = 1, status = 'healthy' }) => {
-            const c = PALETTES[status];
+        // Low, wide, ruffly
+        const Plant_Leafy = ({ c }) => (
+            <g className="animate-sway" style={{transformOrigin: "12px 14px"}}>
+                 <rect x="8" y="12" width="8" height="2" fill={c.leafDark} />
+                 <rect x="6" y="10" width="12" height="2" fill={c.leafDark} />
+                 <rect x="8" y="8" width="8" height="2" fill={c.leafLight} />
+                 <rect x="10" y="6" width="4" height="2" fill={c.leafLight} />
+            </g>
+        );
+
+        // Upright, thin leaves
+        const Plant_Root = ({ c, variety }) => {
+            let rootColor = c.root;
+            if(variety.includes('beet') || variety.includes('radish')) rootColor = '#be185d';
+            if(variety.includes('onion') || variety.includes('garlic')) rootColor = '#fcd34d';
+            if(variety.includes('potato')) rootColor = '#d4d4d8';
+            
             return (
-                <svg viewBox="0 0 24 24" width={24*scale} height={24*scale} className="pixel-art animate-sway">
-                    <PixelTable />
-                    <g transform="translate(0, -3)">
-                        <PixelPot />
-                        <rect x="11" y="11" width="2" height="3" fill={c.stem} />
-                        <rect x="7" y="9" width="10" height="4" fill={c.leafDark} />
-                        <rect x="8" y="7" width="8" height="4" fill={c.leafDark} />
-                        <rect x="6" y="10" width="12" height="2" fill={c.leafDark} />
-                    </g>
-                </svg>
+                <g className="animate-sway" style={{transformOrigin: "12px 14px"}}>
+                     <rect x="11" y="12" width="2" height="2" fill={rootColor} />
+                     <rect x="10" y="6" width="1" height="6" fill={c.leafDark} />
+                     <rect x="13" y="6" width="1" height="6" fill={c.leafDark} />
+                     <rect x="8" y="4" width="1" height="4" fill={c.leafLight} />
+                     <rect x="15" y="4" width="1" height="4" fill={c.leafLight} />
+                     <rect x="11" y="2" width="2" height="10" fill={c.leafLight} />
+                </g>
             );
         };
 
-        const PixelRoot = ({ scale = 1, status = 'healthy' }) => {
-            const c = PALETTES[status];
-            return (
-                <svg viewBox="0 0 24 24" width={24*scale} height={24*scale} className="pixel-art">
-                    <PixelTable />
-                    <g transform="translate(0, -3)">
-                        <PixelPot color="#78350f" />
-                        <rect x="11" y="9" width="2" height="4" fill={c.stem} />
-                        <rect x="9" y="6" width="6" height="3" fill={c.leafDark} />
-                        <rect x="11" y="13" width="2" height="2" fill={c.root} />
-                        <rect x="10" y="14" width="4" height="2" fill={c.root} />
-                    </g>
-                </svg>
-            );
-        };
-
-        const PixelHerb = ({ scale = 1, status = 'healthy' }) => {
-            const c = PALETTES[status];
-            return (
-                <svg viewBox="0 0 24 24" width={24*scale} height={24*scale} className="pixel-art animate-sway">
-                    <PixelTable />
-                    <g transform="translate(0, -3)">
-                        <PixelPot color="#57534e" />
-                        <rect x="11" y="11" width="2" height="3" fill={c.stem} />
-                        <rect x="8" y="6" width="8" height="7" fill={c.leafDark} />
-                        <rect x="7" y="8" width="10" height="4" fill={c.leafDark} />
-                        <rect x="9" y="5" width="6" height="2" fill={c.leafLight} />
-                    </g>
-                </svg>
-            );
-        };
-
-        const PixelTree = ({ scale=1, status='healthy', variety='' }) => {
-            const c = PALETTES[status];
-            let fruitColor = c.fruitAlt;
-            if(status === 'healthy') {
-                if(variety.includes('mulberry')) fruitColor = '#4c1d95';
-                if(variety.includes('fig')) fruitColor = '#701a75';
-                if(variety.includes('cherry')) fruitColor = '#dc2626';
-            }
-            return (
-                <svg viewBox="0 0 24 24" width={24*scale} height={24*scale} className="pixel-art animate-sway">
-                    <PixelTable />
-                    <g transform="translate(0,-4)">
-                        <PixelPot color="#3f2e18"/>
-                        <rect x="11" y="6" width="2" height="8" fill="#5c401f" />
-                        <circle cx="12" cy="6" r="5" fill={c.leafDark} />
-                        <circle cx="10" cy="5" r="3" fill={c.leafLight} />
-                        <circle cx="14" cy="5" r="3" fill={c.leafLight} />
-                        <circle cx="12" cy="4" r="1" fill={fruitColor} /> 
-                        <circle cx="10" cy="7" r="1" fill={fruitColor} />
-                        <circle cx="14" cy="7" r="1" fill={fruitColor} />
-                    </g>
-                </svg>
-            );
-        };
-
-        const PixelBush = ({ scale=1, status='healthy', variety='' }) => {
-            const c = PALETTES[status];
+        // Low spreading, small dots
+        const Plant_Berry = ({ c, variety }) => {
             let berryColor = c.fruit;
-            if(status==='healthy') {
-                if(variety.includes('blue')) berryColor = '#2563eb';
-                if(variety.includes('black')) berryColor = '#171717';
-                if(variety.includes('rasp')) berryColor = '#be123c';
-            }
+            if(variety.includes('blue')) berryColor = '#1e3a8a';
+            if(variety.includes('black')) berryColor = '#1c1917';
+            
             return (
-                <svg viewBox="0 0 24 24" width={24*scale} height={24*scale} className="pixel-art animate-sway">
-                     <PixelTable />
-                     <g transform="translate(0,-4)">
-                        <PixelPot />
-                        <rect x="8" y="6" width="8" height="8" fill={c.leafDark} />
-                        <rect x="6" y="8" width="12" height="4" fill={c.leafDark} />
-                        <rect x="10" y="7" width="2" height="2" fill={berryColor} />
-                        <rect x="8" y="10" width="2" height="2" fill={berryColor} />
-                        <rect x="14" y="9" width="2" height="2" fill={berryColor} />
-                     </g>
-                </svg>
+                <g className="animate-sway" style={{transformOrigin: "12px 14px"}}>
+                     <rect x="6" y="11" width="12" height="3" fill={c.leafDark} />
+                     <rect x="8" y="9" width="8" height="2" fill={c.leafLight} />
+                     <rect x="6" y="13" width="2" height="2" fill={berryColor} />
+                     <rect x="16" y="12" width="2" height="2" fill={berryColor} />
+                     <rect x="11" y="12" width="2" height="2" fill={berryColor} />
+                </g>
             );
         };
 
-        const PixelGeneric = ({ scale = 1, status = 'healthy' }) => {
-             const c = PALETTES[status];
+        // Bunchy
+        const Plant_Herb = ({ c, variety }) => {
+            let herbColor = c.leafLight;
+            if(variety.includes('lavender')) herbColor = '#a78bfa';
+            return (
+                <g className="animate-sway" style={{transformOrigin: "12px 14px"}}>
+                     <rect x="11" y="10" width="2" height="4" fill={c.stem} />
+                     <rect x="9" y="10" width="2" height="2" fill={c.leafDark} />
+                     <rect x="13" y="10" width="2" height="2" fill={c.leafDark} />
+                     <rect x="10" y="7" width="2" height="2" fill={herbColor} />
+                     <rect x="12" y="8" width="2" height="2" fill={herbColor} />
+                     <rect x="8" y="5" width="2" height="2" fill={herbColor} />
+                     <rect x="14" y="6" width="2" height="2" fill={herbColor} />
+                     <rect x="11" y="4" width="2" height="2" fill={herbColor} />
+                </g>
+            );
+        };
+
+        // Woody trunk, canopy
+        const Plant_Tree = ({ c, variety }) => {
+             let fc = c.fruitAlt;
+             if(variety.includes('mulberry')) fc = '#4c1d95';
+             if(variety.includes('cherry')) fc = '#dc2626';
+             if(variety.includes('lime')) fc = '#84cc16';
+             if(variety.includes('orange') || variety.includes('kumquat')) fc = '#f97316';
+             if(variety.includes('apple')) fc = '#ef4444';
+             
              return (
-                 <svg viewBox="0 0 24 24" width={24*scale} height={24*scale} className="pixel-art animate-sway">
-                    <PixelTable />
-                    <g transform="translate(0, -3)">
-                        <PixelPot />
-                        <rect x="11" y="8" width="2" height="6" fill={c.stem} />
-                        <rect x="9" y="6" width="6" height="4" fill={c.leafDark} />
-                        <rect x="8" y="8" width="8" height="4" fill={c.leafDark} />
-                    </g>
-                </svg>
+                 <g className="animate-sway" style={{transformOrigin: "12px 14px"}}>
+                    <rect x="11" y="8" width="2" height="6" fill="#5c401f" />
+                    <rect x="8" y="4" width="8" height="6" fill={c.leafDark} />
+                    <rect x="9" y="3" width="6" height="8" fill={c.leafDark} />
+                    <rect x="10" y="2" width="4" height="2" fill={c.leafLight} />
+                    <rect x="9" y="4" width="2" height="2" fill={c.leafLight} />
+                    <rect x="13" y="5" width="2" height="2" fill={c.leafLight} />
+                    <rect x="8" y="6" width="1" height="1" fill={fc} />
+                    <rect x="15" y="5" width="1" height="1" fill={fc} />
+                    <rect x="11" y="5" width="1" height="1" fill={fc} />
+                 </g>
+             );
+        };
+        
+        // Flower with colorful petals
+        const Plant_Flower = ({ c, variety }) => {
+            let petalColor = c.fruit; // Default red
+            let centerColor = "#fef3c7";
+            if (variety.includes('sunflower')) { petalColor = '#eab308'; centerColor = '#451a03'; }
+            if (variety.includes('lavender')) { petalColor = '#a855f7'; }
+            if (variety.includes('marigold')) { petalColor = '#f97316'; }
+            if (variety.includes('white') || variety.includes('jasmine')) petalColor = '#f0fdf4';
+            if (variety.includes('hibiscus')) petalColor = '#ec4899';
+            if (variety.includes('pansy') || variety.includes('viola')) { petalColor = '#7e22ce'; centerColor = '#facc15'; }
+            if (variety.includes('tulip') || variety.includes('rose')) petalColor = '#f43f5e';
+            if (variety.includes('orchid')) petalColor = '#d946ef';
+            if (variety.includes('zinnia')) petalColor = '#ec4899';
+            if (variety.includes('blue')) petalColor = '#3b82f6';
+            
+            return (
+                <g className="animate-sway" style={{transformOrigin: "12px 14px"}}>
+                    <rect x="11" y="10" width="2" height="4" fill={c.stem} />
+                    <rect x="9" y="12" width="2" height="2" fill={c.leafDark} />
+                    <rect x="13" y="12" width="2" height="2" fill={c.leafDark} />
+                    <rect x="10" y="6" width="4" height="4" fill={petalColor} />
+                    <rect x="9" y="7" width="6" height="2" fill={petalColor} />
+                    <rect x="11" y="5" width="2" height="6" fill={petalColor} />
+                    <rect x="11" y="7" width="2" height="2" fill={centerColor} /> 
+                </g>
+            );
+        };
+        
+        // Cactus / Exotic
+        const Plant_Exotic = ({ c, variety }) => {
+             let bodyColor = c.leafDark;
+             let fruitColor = "#db2777";
+             if(variety.includes('pineapple')) { bodyColor = '#d97706'; fruitColor='#fcd34d'; }
+             if(variety.includes('banana')) { bodyColor = '#84cc16'; fruitColor='#fef08a'; }
+             
+             return (
+                 <g className="animate-sway" style={{transformOrigin: "12px 14px"}}>
+                    <rect x="10" y="6" width="4" height="8" fill={bodyColor} />
+                    <rect x="8" y="8" width="2" height="4" fill={bodyColor} />
+                    <rect x="14" y="7" width="2" height="3" fill={bodyColor} />
+                    <rect x="10" y="7" width="1" height="1" fill="#fef3c7" opacity="0.5"/>
+                    <rect x="13" y="9" width="1" height="1" fill="#fef3c7" opacity="0.5"/>
+                    <rect x="11" y="5" width="2" height="2" fill={fruitColor} />
+                 </g>
              );
         };
 
-        const getPlantVisual = (name, scale=1, status='healthy') => {
+        const Plant_Generic = ({ c }) => (
+             <g className="animate-sway" style={{transformOrigin: "12px 14px"}}>
+                <rect x="11" y="10" width="2" height="4" fill={c.stem} />
+                <rect x="9" y="8" width="2" height="2" fill={c.leafDark} />
+                <rect x="13" y="9" width="2" height="2" fill={c.leafDark} />
+                <rect x="11" y="6" width="2" height="2" fill={c.leafLight} />
+             </g>
+        );
+
+        const PlantVisual = ({ name, scale=1, status='healthy' }) => {
+            const c = PALETTES[status];
             const lower = name.toLowerCase();
-            if(lower.includes('tomato')) return <PixelTomato scale={scale} status={status} variety={lower} />;
-            if(lower.includes('pepper') || lower.includes('chili')) return <PixelPepper scale={scale} status={status} />;
-            if(lower.includes('lettuce') || lower.includes('kale') || lower.includes('spinach') || lower.includes('chard')) return <PixelLeafy scale={scale} status={status} />;
-            if(lower.includes('basil') || lower.includes('mint') || lower.includes('oregano') || lower.includes('parsley') || lower.includes('thyme')) return <PixelHerb scale={scale} status={status} />;
-            if(lower.includes('tree') || lower.includes('lemon') || lower.includes('fig') || lower.includes('cherry') || lower.includes('mulberry')) return <PixelTree scale={scale} status={status} variety={lower} />;
-            if(lower.includes('berry') || lower.includes('rasp') || lower.includes('blue') || lower.includes('straw')) return <PixelBush scale={scale} status={status} variety={lower} />;
-            if(lower.includes('carrot') || lower.includes('radish') || lower.includes('potato')) return <PixelRoot scale={scale} status={status} />;
-            return <PixelGeneric scale={scale} status={status} />;
+            
+            let PlantComp = Plant_Generic;
+            if(lower.includes('tomato')) PlantComp = Plant_Tomato;
+            else if(lower.includes('pepper')) PlantComp = Plant_Pepper;
+            else if(lower.includes('lettuce') || lower.includes('spinach') || lower.includes('chard') || lower.includes('kale') || lower.includes('greens') || lower.includes('cabbage') || lower.includes('broccoli') || lower.includes('cauliflower') || lower.includes('sprout') || lower.includes('bok choy')) PlantComp = Plant_Leafy;
+            else if(lower.includes('carrot') || lower.includes('radish') || lower.includes('potato') || lower.includes('root') || lower.includes('ginger') || lower.includes('turmeric') || lower.includes('beet') || lower.includes('onion') || lower.includes('garlic')) PlantComp = Plant_Root;
+            else if(lower.includes('berry') || lower.includes('strawberry') || lower.includes('grape') || lower.includes('currant')) PlantComp = Plant_Berry;
+            else if(lower.includes('basil') || lower.includes('mint') || lower.includes('oregano') || lower.includes('thyme') || lower.includes('cilantro') || lower.includes('parsley') || lower.includes('chive') || lower.includes('dill') || lower.includes('sage') || lower.includes('lemongrass')) PlantComp = Plant_Herb;
+            else if(lower.includes('tree') || lower.includes('mulberry') || lower.includes('lemon') || lower.includes('kumquat') || lower.includes('lime') || lower.includes('apple') || lower.includes('pear') || lower.includes('peach') || lower.includes('cherry') || lower.includes('fig') || lower.includes('orange') || lower.includes('avocado')) PlantComp = Plant_Tree;
+            else if(lower.includes('flower') || lower.includes('sunflower') || lower.includes('lavender') || lower.includes('marigold') || lower.includes('petunia') || lower.includes('pansy') || lower.includes('hibiscus') || lower.includes('zinnia') || lower.includes('nasturtium') || lower.includes('rose') || lower.includes('tulip') || lower.includes('orchid') || lower.includes('viola') || lower.includes('snapdragon') || lower.includes('cosmos') || lower.includes('begonia') || lower.includes('lily')) PlantComp = Plant_Flower;
+            else if(lower.includes('dragon') || lower.includes('cactus') || lower.includes('pineapple') || lower.includes('banana') || lower.includes('passion')) PlantComp = Plant_Exotic;
+            else if(lower.includes('bean') || lower.includes('pea') || lower.includes('cucumber') || lower.includes('squash') || lower.includes('zucchini') || lower.includes('pumpkin') || lower.includes('melon') || lower.includes('eggplant')) PlantComp = Plant_Tomato; // Use viny/bushy tomato model for these
+            
+            return (
+                <svg viewBox="0 0 24 24" width={24*scale} height={24*scale} className="pixel-art">
+                    <PixelTable />
+                    <g transform="translate(0, -2)">
+                        <PixelPot />
+                        <PlantComp c={c} variety={lower} />
+                    </g>
+                </svg>
+            );
         };
 
         // --- ICONS ---
         const IconBase = ({ children, className = "", size = 24, color = "currentColor" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>{children}</svg>);
         const Sun = (p) => <IconBase {...p}><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41-1.41"/><path d="m19.07 4.93-1.41 1.41"/></IconBase>;
+        const Moon = (p) => <IconBase {...p}><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></IconBase>;
         const Plus = (p) => <IconBase {...p}><path d="M5 12h14"/><path d="M12 5v14"/></IconBase>;
         const Trash2 = (p) => <IconBase {...p}><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></IconBase>;
         const Edit3 = (p) => <IconBase {...p}><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></IconBase>;
@@ -389,13 +580,49 @@
         const BookOpen = (p) => <IconBase {...p}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></IconBase>;
         const Download = (p) => <IconBase {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></IconBase>;
         const Upload = (p) => <IconBase {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></IconBase>;
+        const CalendarIcon = (p) => <IconBase {...p}><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></IconBase>;
+
+        const PixelSun = () => <svg viewBox="0 0 24 24" width="64" height="64" className="pixel-art animate-spin-slow"><rect x="8" y="8" width="8" height="8" fill="#fcd34d" /><rect x="10" y="4" width="4" height="2" fill="#f59e0b" /><rect x="10" y="18" width="4" height="2" fill="#f59e0b" /><rect x="4" y="10" width="2" height="4" fill="#f59e0b" /><rect x="18" y="10" width="2" height="4" fill="#f59e0b" /><rect x="6" y="6" width="2" height="2" fill="#f59e0b" /><rect x="16" y="6" width="2" height="2" fill="#f59e0b" /><rect x="6" y="16" width="2" height="2" fill="#f59e0b" /><rect x="16" y="16" width="2" height="2" fill="#f59e0b" /></svg>;
+        const PixelMoon = () => <svg viewBox="0 0 24 24" width="50" height="50" className="pixel-art"><rect x="8" y="4" width="6" height="2" fill="#e2e8f0" /><rect x="6" y="6" width="4" height="2" fill="#e2e8f0" /><rect x="4" y="8" width="4" height="8" fill="#e2e8f0" /><rect x="6" y="16" width="4" height="2" fill="#e2e8f0" /><rect x="8" y="18" width="6" height="2" fill="#e2e8f0" /><rect x="12" y="6" width="4" height="12" fill="#94a3b8" /></svg>;
+        
+        // --- NEW CLOUD SHAPES ---
+        const PixelCloud = ({ opacity = 1 }) => (
+            <svg viewBox="0 0 32 16" width="64" height="32" className="pixel-art" style={{opacity}}>
+                <rect x="8" y="8" width="16" height="6" fill="white" />
+                <rect x="4" y="10" width="4" height="4" fill="white" />
+                <rect x="24" y="10" width="4" height="4" fill="white" />
+                <rect x="8" y="4" width="8" height="4" fill="white" />
+                <rect x="16" y="6" width="6" height="2" fill="white" />
+            </svg>
+        );
+
+        const PixelCloudFluffy = ({ opacity = 1 }) => (
+            <svg viewBox="0 0 32 20" width="64" height="40" className="pixel-art" style={{opacity}}>
+                <rect x="6" y="8" width="20" height="10" fill="white" />
+                <rect x="4" y="10" width="2" height="6" fill="white" />
+                <rect x="26" y="10" width="2" height="6" fill="white" />
+                <rect x="8" y="4" width="8" height="4" fill="white" />
+                <rect x="18" y="6" width="6" height="2" fill="white" />
+                <rect x="10" y="2" width="4" height="2" fill="white" />
+            </svg>
+        );
+
+        const PixelCloudWide = ({ opacity = 1 }) => (
+            <svg viewBox="0 0 48 16" width="96" height="32" className="pixel-art" style={{opacity}}>
+                <rect x="10" y="8" width="28" height="6" fill="white" />
+                <rect x="6" y="10" width="4" height="4" fill="white" />
+                <rect x="38" y="10" width="4" height="4" fill="white" />
+                <rect x="12" y="4" width="12" height="4" fill="white" />
+                <rect x="28" y="6" width="8" height="2" fill="white" />
+            </svg>
+        );
 
         // --- ANIMATION ---
         const CelebrationOverlay = ({ plantName }) => (
             <div className="fixed inset-0 z-[120] flex items-center justify-center pointer-events-none bg-black/40 backdrop-blur-sm transition-opacity duration-500">
                 <div className="relative flex flex-col items-center">
                     <div className="animate-grow origin-bottom scale-150 mb-6 drop-shadow-2xl">
-                        {getPlantVisual(plantName, 8, 'healthy')}
+                        <PlantVisual name={plantName} scale={8} status="healthy" />
                     </div>
                     <div className="animate-pop text-center">
                         <span className="text-3xl font-bold text-[#fef3c7] bg-[#451a03] px-8 py-3 rounded-lg shadow-xl border-4 border-[#78350f] pixel-font tracking-widest">PLANTED!</span>
@@ -404,6 +631,121 @@
             </div>
         );
 
+        // --- CUSTOM MODALS & TOASTS (Replaces Alert/Confirm) ---
+        const ConfirmModal = ({ isOpen, message, onConfirm, onCancel }) => {
+            if (!isOpen) return null;
+            return (
+                <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-[#f0ebe5] rounded-lg border-4 border-[#451a03] p-6 max-w-sm w-full mx-4 card-shadow animate-pop">
+                        <div className="text-[#451a03] text-xl font-bold pixel-font mb-4 text-center tracking-wide">{message}</div>
+                        <div className="flex gap-4 justify-center">
+                            <button onClick={onCancel} className="px-4 py-2 rounded bg-[#e7e5e4] text-[#57534e] font-bold border-2 border-[#d6d3d1] hover:bg-[#d6d3d1] pixel-font">CANCEL</button>
+                            <button onClick={onConfirm} className="wood-btn px-6 py-2 rounded font-bold pixel-font">CONFIRM</button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const Toast = ({ message, type = 'success', onClose }) => {
+            useEffect(() => {
+                const timer = setTimeout(onClose, 3000);
+                return () => clearTimeout(timer);
+            }, [onClose]);
+
+            const bgClass = type === 'error' ? 'bg-red-500 border-red-700' : 'bg-[#451a03] border-[#78350f]';
+
+            return (
+                <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[160] ${bgClass} text-[#fef3c7] px-6 py-3 rounded-lg shadow-xl border-2 pixel-font tracking-wide animate-slide-up flex items-center gap-2`}>
+                    {type === 'error' ? <AlertTriangle size={18} /> : <div className="text-green-400 text-lg">✓</div>}
+                    {message}
+                </div>
+            );
+        };
+        
+        // --- CALENDAR COMPONENT ---
+        const GardenCalendar = ({ plants, getWeatherModifier }) => {
+             const [forecast, setForecast] = useState([]);
+             
+             useEffect(() => {
+                 const wMod = getWeatherModifier();
+                 const nextWeek = [];
+                 const today = new Date();
+                 today.setHours(0,0,0,0);
+                 
+                 for(let i=0; i<7; i++) {
+                     const currentDay = new Date(today);
+                     currentDay.setDate(today.getDate() + i);
+                     
+                     const dayTasks = [];
+                     plants.forEach(p => {
+                        // Water calc
+                        const wAdjFreq = Math.max(1, Math.round(p.waterFreq * wMod.val));
+                        const lastW = new Date(p.lastWatered);
+                        // Calculate next due date
+                        const nextW = new Date(lastW);
+                        nextW.setDate(lastW.getDate() + wAdjFreq);
+                        nextW.setHours(0,0,0,0);
+                        
+                        // If it's overdue (before today) and we are looking at today (i==0), show it
+                        if (i === 0 && nextW < today) {
+                            dayTasks.push({ plant: p, type: 'water', overdue: true });
+                        } else if (nextW.getTime() === currentDay.getTime()) {
+                            dayTasks.push({ plant: p, type: 'water', overdue: false });
+                        }
+                        
+                        // Feed calc
+                        if (p.fertilizerFreq > 0) {
+                            const lastF = new Date(p.lastFertilized);
+                            const nextF = new Date(lastF);
+                            nextF.setDate(lastF.getDate() + p.fertilizerFreq); // No weather mod for food usually
+                            nextF.setHours(0,0,0,0);
+                            
+                            if (i === 0 && nextF < today) {
+                                dayTasks.push({ plant: p, type: 'fert', overdue: true });
+                            } else if (nextF.getTime() === currentDay.getTime()) {
+                                dayTasks.push({ plant: p, type: 'fert', overdue: false });
+                            }
+                        }
+                     });
+                     
+                     nextWeek.push({ date: currentDay, tasks: dayTasks });
+                 }
+                 setForecast(nextWeek);
+             }, [plants, getWeatherModifier]);
+
+             return (
+                 <div className="bg-[#fdfbf7] border-4 border-[#5c401f] rounded-xl card-shadow p-4 mt-6">
+                    <h3 className="text-[#78350f] font-bold pixel-font text-2xl mb-4 flex items-center gap-2 border-b-2 border-[#e7e5e4] pb-2">
+                        <CalendarIcon size={24}/> GARDEN FORECAST
+                    </h3>
+                    <div className="flex gap-2 overflow-x-auto pb-4 library-scroll">
+                        {forecast.map((day, idx) => (
+                            <div key={idx} className={`flex-shrink-0 w-28 flex flex-col border-2 rounded-lg overflow-hidden ${idx === 0 ? 'border-[#78350f] bg-[#fffbeb]' : 'border-[#d6d3d1] bg-white'}`}>
+                                <div className={`p-1 text-center font-bold text-xs uppercase ${idx === 0 ? 'bg-[#78350f] text-[#fef3c7]' : 'bg-[#e7e5e4] text-[#57534e]'}`}>
+                                    {idx === 0 ? 'TODAY' : day.date.toLocaleDateString('en-US', {weekday: 'short', month: 'numeric', day: 'numeric'})}
+                                </div>
+                                <div className="p-2 flex flex-col gap-1 h-32 overflow-y-auto library-scroll">
+                                    {day.tasks.length === 0 ? (
+                                        <div className="h-full flex items-center justify-center opacity-30">
+                                            <span className="text-2xl">🌱</span>
+                                        </div>
+                                    ) : (
+                                        day.tasks.map((t, tIdx) => (
+                                            <div key={tIdx} className={`text-[10px] p-1 rounded border flex items-center gap-1 ${t.type === 'water' ? 'bg-blue-50 border-blue-200 text-blue-800' : 'bg-green-50 border-green-200 text-green-800'}`}>
+                                                {t.type === 'water' ? <Droplets size={8}/> : <Utensils size={8}/>}
+                                                <span className="truncate font-bold">{t.plant.nickname || t.plant.name}</span>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                 </div>
+             );
+        };
+
         // --- APP LOGIC ---
         const App = () => {
             const [plants, setPlants] = useState([]);
@@ -411,12 +753,15 @@
             const [filter, setFilter] = useState('all'); 
             const [searchTerm, setSearchTerm] = useState('');
             const [justAddedPlant, setJustAddedPlant] = useState(null);
-            
             const [weather, setWeather] = useState(null);
             const [weatherLoading, setWeatherLoading] = useState(false);
             const [weatherError, setWeatherError] = useState(null);
             const [savedCoords, setSavedCoords] = useState(null);
             
+            // System UI State
+            const [confirmState, setConfirmState] = useState({ isOpen: false, message: '', onConfirm: null });
+            const [toastState, setToastState] = useState(null); // { message, type }
+
             const fileInputRef = useRef(null);
             
             const [newPlant, setNewPlant] = useState({
@@ -430,18 +775,18 @@
 
             useEffect(() => { 
                 try { 
-                    const saved = localStorage.getItem('balconyTracker_v14'); 
+                    const saved = localStorage.getItem('balconyTracker_v15'); 
                     if (saved) setPlants(JSON.parse(saved));
                     const coords = localStorage.getItem('garden_coords');
                     if (coords) setSavedCoords(JSON.parse(coords));
                 } catch (e) {} 
             }, []);
 
-            useEffect(() => { try { localStorage.setItem('balconyTracker_v14', JSON.stringify(plants)); } catch (e) {} }, [plants]);
+            useEffect(() => { try { localStorage.setItem('balconyTracker_v15', JSON.stringify(plants)); } catch (e) {} }, [plants]);
 
-            useEffect(() => {
-                if (savedCoords) fetchWeather(savedCoords.latitude, savedCoords.longitude);
-            }, [savedCoords]);
+            useEffect(() => { if (savedCoords) fetchWeather(savedCoords.latitude, savedCoords.longitude); }, [savedCoords]);
+
+            const showToast = (message, type = 'success') => setToastState({ message, type });
 
             const fetchWeather = async (lat, lon) => {
                 setWeatherLoading(true); setWeatherError(null);
@@ -474,25 +819,18 @@
 
             const getDayName = (isoDate) => new Date(isoDate).toLocaleDateString('en-US', { weekday: 'short' });
 
-            const getWeatherModifier = () => {
+            // Memoized to prevent calendar refresh loops, but using refs inside useEffect there. 
+            // We just need a stable function reference for the calendar component.
+            const getWeatherModifier = React.useCallback(() => {
                 if (!weather) return { val: 1.0, icon: null };
                 const maxTemp = weather.daily.temperature_2m_max[0];
                 const precip = weather.daily.precipitation_sum[0];
-                if (maxTemp > 85) return { val: 0.6, icon: <Sun size={12} className="text-orange-500 animate-pulse"/> }; // Faster dry
-                if (precip > 0.2) return { val: 1.5, icon: <CloudRain size={12} className="text-blue-500"/> }; // Slower dry
+                // Heat > 85F speeds up drying (0.7x interval)
+                if (maxTemp > 85) return { val: 0.7, icon: <Sun size={12} className="text-orange-500 animate-pulse"/> };
+                // Rain > 0.2 inch slows down drying (1.5x interval)
+                if (precip > 0.2) return { val: 1.5, icon: <CloudRain size={12} className="text-blue-500"/> };
                 return { val: 1.0, icon: null };
-            };
-
-            const getWeatherAdvice = () => {
-                if (!weather) return [];
-                const minTemp = weather.daily.temperature_2m_min[0], maxTemp = weather.daily.temperature_2m_max[0], precip = weather.daily.precipitation_sum[0];
-                let alerts = [];
-                if (minTemp <= 35) alerts.push({ type: 'danger', icon: <AlertTriangle size={16}/>, msg: "FROST!" });
-                if (maxTemp >= 85) alerts.push({ type: 'warning', icon: <Sun size={16}/>, msg: "HEAT WAVE" });
-                if (precip > 0.25) alerts.push({ type: 'info', icon: <CloudRain size={16}/>, msg: "RAINY" });
-                if (alerts.length === 0) alerts.push({ type: 'neutral', icon: <Sun size={16}/>, msg: `MILD (${maxTemp}°)` });
-                return alerts;
-            };
+            }, [weather]);
 
             const handleExport = () => {
                 const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(plants));
@@ -500,7 +838,10 @@
                 anchor.setAttribute("href", dataStr);
                 anchor.setAttribute("download", "garden_backup.json");
                 document.body.appendChild(anchor); anchor.click(); anchor.remove();
+                showToast("Garden data exported!");
             };
+
+            const handleImportClick = () => fileInputRef.current.click();
 
             const handleFileChange = (e) => {
                 const file = e.target.files[0];
@@ -510,9 +851,17 @@
                     try {
                         const imported = JSON.parse(event.target.result);
                         if (Array.isArray(imported)) {
-                            if(confirm(`Restore ${imported.length} plants?`)) setPlants(imported);
+                            setConfirmState({
+                                isOpen: true,
+                                message: `Restore ${imported.length} plants?`,
+                                onConfirm: () => {
+                                    setPlants(imported);
+                                    setConfirmState({ ...confirmState, isOpen: false });
+                                    showToast("Garden restored!");
+                                }
+                            });
                         }
-                    } catch (e) { alert("Error"); }
+                    } catch (e) { showToast("Invalid File", 'error'); }
                 };
                 reader.readAsText(file);
                 e.target.value = null; 
@@ -521,64 +870,62 @@
             const handleSavePlant = (e) => {
                 e.preventDefault(); if (!newPlant.name) return;
                 const save = { ...newPlant, id: newPlant.id || Date.now().toString() };
-                if (newPlant.id) setPlants(plants.map(p => p.id === newPlant.id ? save : p));
-                else { setPlants([...plants, save]); setJustAddedPlant(newPlant.name); setTimeout(() => setJustAddedPlant(null), 2500); }
+                if (newPlant.id) {
+                    setPlants(plants.map(p => p.id === newPlant.id ? save : p));
+                    showToast("Pot updated!");
+                } else { 
+                    setPlants([...plants, save]); 
+                    setJustAddedPlant(newPlant.name); 
+                    setTimeout(() => setJustAddedPlant(null), 2500); 
+                    showToast("New pot added!");
+                }
                 closeModal();
             };
 
-            const handleDelete = (id) => { if(confirm("Remove pot?")) setPlants(plants.filter(p => p.id !== id)); };
+            const handleDelete = (id) => { 
+                setConfirmState({
+                    isOpen: true,
+                    message: "Compost this pot?",
+                    onConfirm: () => {
+                        setPlants(plants.filter(p => p.id !== id));
+                        setConfirmState({ ...confirmState, isOpen: false });
+                        showToast("Pot removed.");
+                    }
+                });
+            };
 
             const logAction = (id, type) => {
                 const today = new Date().toISOString().split('T')[0];
                 setPlants(plants.map(p => p.id === id ? (type === 'water' ? { ...p, lastWatered: today } : { ...p, lastFertilized: today }) : p));
+                showToast(type === 'water' ? "Thirst quenched!" : "Plant fed!");
             };
 
-            // --- CORE CALCULATION LOGIC ---
             const calculateFrequencies = (basePlant, materialLabel, sizeLabel) => {
                 const mat = CONTAINER_MATERIALS.find(m => m.label === materialLabel) || CONTAINER_MATERIALS[0];
                 const siz = CONTAINER_SIZES.find(s => s.label === sizeLabel) || CONTAINER_SIZES[3];
-                
-                // Calculate combined modifier
                 const totalWaterMod = mat.waterMod * siz.waterMod;
                 const totalFertMod = mat.fertMod * siz.fertMod;
-
-                // Apply to base frequency. Max(1) prevents 0 days.
                 const waterFreq = Math.max(1, Math.round(basePlant.waterFreq * totalWaterMod));
-                
-                // For fertilizer, if base is 0 (like rosemary), keep 0. Else min 7 days.
                 const fertFreq = basePlant.fertilizerFreq === 0 ? 0 : Math.max(7, Math.round(basePlant.fertilizerFreq * totalFertMod));
-                
                 return { waterFreq, fertFreq };
             };
 
             const selectFromLibrary = (libPlant) => {
-                // Calc based on current dropdowns
                 const { waterFreq, fertFreq } = calculateFrequencies(libPlant, newPlant.containerMaterial, newPlant.containerSize);
-                
                 setNewPlant(prev => ({ 
-                    ...prev, 
-                    name: libPlant.name, 
-                    waterFreq, 
-                    fertilizerFreq: fertFreq, 
-                    notes: libPlant.notes 
+                    ...prev, name: libPlant.name, waterFreq, fertilizerFreq: fertFreq, notes: libPlant.notes 
                 }));
                 setSearchTerm('');
             };
 
             const handleContainerChange = (field, value) => {
-                // Update the specific field first
                 const updatedPlant = { ...newPlant, [field]: value };
-                
-                // Find current plant in library to get BASELINE stats
-                const libEntry = PLANT_LIBRARY.find(p => p.name === updatedPlant.name);
-                
+                const libEntry = PLANT_LIBRARY.find(p => p.name === newPlant.name);
                 if (libEntry) {
-                    // Recalculate using new container settings + library baseline
                     const { waterFreq, fertFreq } = calculateFrequencies(libEntry, updatedPlant.containerMaterial, updatedPlant.containerSize);
                     updatedPlant.waterFreq = waterFreq;
                     updatedPlant.fertilizerFreq = fertFreq;
                 }
-                
                 setNewPlant(updatedPlant);
             };
 
@@ -608,9 +955,9 @@
 
             const filteredPlants = plants.filter(p => filter === 'due' ? (getStatus(p.lastWatered, p.waterFreq).isDue || getStatus(p.lastFertilized, p.fertilizerFreq).isDue) : true);
             const librarySuggestions = searchTerm.length > 0 ? PLANT_LIBRARY.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase())) : [];
-            const weatherAlerts = getWeatherAdvice();
             const uniqueWisdom = Array.from(new Set(plants.map(p => p.name))).map(name => { const l = PLANT_LIBRARY.find(i => i.name === name); return l ? { name: name, tip: l.tip } : null; }).filter(Boolean);
             const isDay = weather ? weather.current.is_day === 1 : true;
+            
             const shelves = [];
             for (let i = 0; i < plants.length; i += 4) { shelves.push(plants.slice(i, i + 4)); }
             if (shelves.length === 0) shelves.push([]);
@@ -618,8 +965,16 @@
             return (
                 <div className="min-h-screen pb-32">
                     {justAddedPlant && <CelebrationOverlay plantName={justAddedPlant} />}
+                    {toastState && <Toast message={toastState.message} type={toastState.type} onClose={() => setToastState(null)} />}
+                    <ConfirmModal 
+                        isOpen={confirmState.isOpen} 
+                        message={confirmState.message} 
+                        onConfirm={confirmState.onConfirm} 
+                        onCancel={() => setConfirmState({...confirmState, isOpen: false})} 
+                    />
 
-                    <header className="bg-[#1c1917] text-[#e7e5e4] shadow-lg sticky top-0 z-10 border-b-4 border-[#44403c]">
+                    {/* UPDATED HEADER Z-INDEX to z-50 to stay on top */}
+                    <header className="bg-[#1c1917] text-[#e7e5e4] shadow-lg sticky top-0 z-50 border-b-4 border-[#44403c]">
                         <div className="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
                             <div className="flex items-center gap-2">
                                 <span className="text-3xl filter grayscale-[30%]">🌿</span>
@@ -631,7 +986,7 @@
                             <div className="flex gap-2">
                                 <button onClick={handleExport} className="bg-[#292524] text-[#a8a29e] p-2 rounded-lg border border-[#44403c] hover:text-[#d6d3d1]" title="Export"><Download size={18} /></button>
                                 <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept=".json" />
-                                <button onClick={() => fileInputRef.current.click()} className="bg-[#292524] text-[#a8a29e] p-2 rounded-lg border border-[#44403c] hover:text-[#d6d3d1]" title="Import"><Upload size={18} /></button>
+                                <button onClick={handleImportClick} className="bg-[#292524] text-[#a8a29e] p-2 rounded-lg border border-[#44403c] hover:text-[#d6d3d1]" title="Import"><Upload size={18} /></button>
                                 <button onClick={openNew} className="wood-btn px-4 py-2 rounded-lg font-bold shadow-md flex items-center gap-2 text-lg transition-transform pixel-font tracking-widest ml-2"><Plus size={18} /> ADD</button>
                             </div>
                         </div>
@@ -666,10 +1021,9 @@
 
                     <div className="max-w-4xl mx-auto p-4 space-y-6">
                         
-                        {/* VISUAL GARDEN BED */}
+                        {/* VISUAL GARDEN */}
                         <div className={`rounded-xl card-shadow overflow-hidden border-4 border-[#451a03] relative min-h-[40vh] flex flex-col transition-colors duration-2000 ${isDay ? 'bg-gradient-to-b from-sky-400 via-sky-200 to-amber-100' : 'bg-gradient-to-b from-slate-900 via-indigo-950 to-purple-900'}`}>
                             
-                            {/* SKY */}
                             <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
                                 <div className="absolute top-6 right-6 transition-all duration-1000 z-10">
                                     {isDay ? <PixelSun /> : <PixelMoon />}
@@ -683,9 +1037,79 @@
                                 )}
                                 {isDay && (
                                     <>
-                                        <div className="absolute top-10 left-[-10%] animate-drift opacity-80"><PixelCloud /></div>
-                                        <div className="absolute top-24 left-[-40%] animate-drift-fast opacity-60"><PixelCloud opacity={0.6} /></div>
-                                        <div className="absolute top-5 left-[-80%] animate-drift-slow opacity-40" style={{transform: 'scale(0.5)'}}><PixelCloud opacity={0.4} /></div>
+                                        {/* === CLOUD OVERLOAD === */}
+                                        
+                                        {/* --- Layer 1: Background (Slowest, Smallest, Low Opacity) --- */}
+                                        <div className="absolute top-12 left-[-10%] animate-drift-slower opacity-40" style={{transform: 'scale(1.2)'}}><PixelCloudWide /></div>
+                                        <div className="absolute top-24 left-[-60%] animate-drift-slower opacity-30" style={{animationDelay: '40s', transform: 'scale(1.0)'}}><PixelCloud /></div>
+                                        <div className="absolute top-5 left-[-35%] animate-drift-slower opacity-40" style={{animationDelay: '80s', transform: 'scale(1.3)'}}><PixelCloudFluffy /></div>
+                                        <div className="absolute top-28 left-[-85%] animate-drift-slower opacity-30" style={{animationDelay: '10s', transform: 'scale(1.1)'}}><PixelCloud /></div>
+                                        <div className="absolute top-2 left-[-90%] animate-drift-slower opacity-40" style={{animationDelay: '120s', transform: 'scale(1.4)'}}><PixelCloudWide /></div>
+                                        <div className="absolute top-16 left-[-20%] animate-drift-slower opacity-35" style={{animationDelay: '150s', transform: 'scale(1.2)'}}><PixelCloudFluffy /></div>
+
+                                        {/* --- Layer 2: Midground (Medium Speed, Medium Size) --- */}
+                                        <div className="absolute top-8 left-[-30%] animate-drift-slow opacity-70" style={{animationDelay: '10s', transform: 'scale(3.0)'}}><PixelCloudFluffy /></div>
+                                        <div className="absolute top-32 left-[-80%] animate-drift-slow opacity-60" style={{animationDelay: '60s', transform: 'scale(2.5)'}}><PixelCloudWide /></div>
+                                        <div className="absolute top-16 left-[-10%] animate-drift opacity-65" style={{animationDelay: '90s', transform: 'scale(2.2)'}}><PixelCloudFluffy /></div>
+                                        <div className="absolute top-6 left-[-15%] animate-drift-fast opacity-80" style={{animationDelay: '70s', transform: 'scale(2.7)'}}><PixelCloud /></div>
+                                        
+                                        {/* === WILDLIFE === */}
+                                        
+                                        {/* Birds - Heavy Traffic, Crossing Right to Left */}
+                                        {/* Flock 1 */}
+                                        <div className="absolute top-12 left-0 crossing-reverse-med" style={{animationDelay: '-5s'}}>
+                                            <div className="local-fly"><PixelBird color="#451a03" size={24} /></div> {/* Sparrow */}
+                                        </div>
+                                        <div className="absolute top-10 left-[-90%] animate-drift opacity-90" style={{animationDelay: '30s', transform: 'scale(5.5)'}}><PixelCloudWide /></div>
+                                        <div className="absolute top-2 left-[-40%] animate-drift-fast opacity-80" style={{animationDelay: '15s', transform: 'scale(4.5)'}}><PixelCloudFluffy /></div>
+                                        <div className="absolute top-24 left-[-70%] animate-drift opacity-85" style={{animationDelay: '50s', transform: 'scale(4.8)'}}><PixelCloudWide /></div>
+                                        <div className="absolute top-6 left-[-15%] animate-drift-fast opacity-80" style={{animationDelay: '70s', transform: 'scale(5.2)'}}><PixelCloud /></div>
+                                        
+                                        {/* === WILDLIFE === */}
+                                        
+                                        {/* Birds - Crossing Right to Left (Face Left) */}
+                                        {/* Note: Transform flip applied to PixelBird to avoid conflict with drift animation */}
+                                        
+                                        <div className="absolute top-12 left-0 crossing-reverse-med" style={{animationDelay: '-5s'}}>
+                                            <div className="local-fly">
+                                                <PixelBird color="#451a03" size={24} style={{ transform: 'scaleX(-1)' }} />
+                                            </div> 
+                                        </div>
+
+                                        <div className="absolute top-24 left-0 crossing-reverse-slow" style={{animationDelay: '-25s'}}>
+                                            <div className="local-fly-slow">
+                                                <PixelBird color="#ef4444" size={28} style={{ transform: 'scaleX(-1)' }} />
+                                            </div> 
+                                        </div>
+                                        
+                                        <div className="absolute top-8 left-0 crossing-reverse-fast" style={{animationDelay: '-15s'}}>
+                                            <div className="local-fly">
+                                                <PixelBird color="#3b82f6" size={26} style={{ transform: 'scaleX(-1)' }} />
+                                            </div> 
+                                        </div>
+                                        
+                                        <div className="absolute top-5 left-0 crossing-reverse-slow" style={{animationDelay: '-45s'}}>
+                                            <div className="local-fly-slow">
+                                                <PixelBird color="#171717" size={32} style={{ transform: 'scaleX(-1)' }} />
+                                            </div> 
+                                        </div>
+
+                                        {/* Insects - Reduced count, Slower, "Stop and Check" behavior */}
+                                        
+                                        {/* Butterfly 1 - Checks early plants */}
+                                        <div className="absolute top-40 left-[-50px] visiting-early" style={{animationDelay: '2s'}}>
+                                            <div className="local-flutter"><PixelButterfly color="#f472b6" size={20} /></div>
+                                        </div>
+                                        
+                                        {/* Butterfly 2 - Checks late plants */}
+                                        <div className="absolute top-48 left-[-50px] visiting-late" style={{animationDelay: '25s'}}>
+                                            <div className="local-flutter"><PixelButterfly color="#a78bfa" size={24} /></div>
+                                        </div>
+
+                                        {/* Bee - Checks early plants, lower down */}
+                                        <div className="absolute top-52 left-[-20px] visiting-early" style={{animationDelay: '15s'}}>
+                                            <div className="local-buzz"><PixelBee size={14} /></div>
+                                        </div>
                                     </>
                                 )}
                             </div>
@@ -694,8 +1118,8 @@
                                 <h3 className="text-[#78350f] font-bold pixel-font text-3xl mb-1 opacity-90 bg-[#f0ebe5]/90 mx-auto w-fit px-6 py-1 rounded-sm shadow-sm border-2 border-[#78350f]/20">MY PLOT</h3>
                             </div>
                             
-                            {/* SHELVES */}
-                            <div className="pt-24 pb-0 px-4 relative z-10 flex flex-col gap-8 items-center w-full justify-end flex-grow">
+                            {/* SHELVES - Reduced bottom padding to lower the platform onto the floor */}
+                            <div className="pt-32 pb-12 px-4 relative z-10 flex flex-col gap-8 items-center w-full justify-end flex-grow">
                                 {shelves.map((shelfPlants, shelfIdx) => (
                                     <div key={shelfIdx} className="relative w-full max-w-md flex flex-col items-center">
                                         <div className="flex items-end justify-center gap-2 sm:gap-6 w-full px-2 z-10 pb-[2px]">
@@ -707,7 +1131,7 @@
                                                 if (water.isDue) status = 'dry'; else if (food.isDue) status = 'hungry';
                                                 return (
                                                     <div key={plant.id} className="flex-shrink-0 flex flex-col items-center group relative cursor-help filter drop-shadow-xl transition-all duration-300 hover:scale-110">
-                                                        <div>{getPlantVisual(plant.name, 3, status)}</div>
+                                                        <div onClick={() => openEdit(plant)} className="cursor-pointer hover:scale-105 transition-transform"><PlantVisual name={plant.name} scale={3} status={status} /></div>
                                                         <div className="absolute bottom-full mb-2 hidden group-hover:block bg-slate-900 text-slate-100 text-xs px-2 py-1 rounded-sm border border-slate-700 whitespace-nowrap z-20 pixel-font shadow-lg">
                                                             {plant.nickname || plant.name}
                                                             {status === 'dry' && <span className="block text-red-400 text-[10px]">THIRSTY</span>}
@@ -716,15 +1140,17 @@
                                                 );
                                             })}
                                         </div>
-                                        {/* Shelf */}
                                         <div className="w-full h-4 bg-[#5c401f] border-t-4 border-[#3f2e18] rounded-sm shadow-lg relative"></div>
                                     </div>
                                 ))}
                                 
-                                {/* FLOOR */}
-                                <div className="w-full h-16 bg-[#78350f] border-t-8 border-[#451a03] mt-4 relative pixel-art" style={{backgroundImage: 'linear-gradient(45deg, #451a03 25%, transparent 25%, transparent 75%, #451a03 75%, #451a03), linear-gradient(45deg, #451a03 25%, transparent 25%, transparent 75%, #451a03 75%, #451a03)', backgroundSize: '20px 20px', backgroundPosition: '0 0, 10px 10px', opacity: 0.9}}></div>
+                                {/* FLOOR - Reduced height to h-16 (was h-32) */}
+                                <div className="absolute bottom-0 w-full h-16 bg-[#78350f] border-t-8 border-[#451a03] pixel-art" style={{backgroundImage: 'linear-gradient(45deg, #451a03 25%, transparent 25%, transparent 75%, #451a03 75%, #451a03), linear-gradient(45deg, #451a03 25%, transparent 25%, transparent 75%, #451a03 75%, #451a03)', backgroundSize: '20px 20px', backgroundPosition: '0 0, 10px 10px', opacity: 0.9}}></div>
                             </div>
                         </div>
+
+                        {/* CALENDAR SECTION */}
+                        <GardenCalendar plants={plants} getWeatherModifier={getWeatherModifier} />
 
                         <div className="flex gap-2 bg-[#292524] p-1 rounded-lg border border-[#44403c]">
                             <button onClick={() => setFilter('all')} className={`flex-1 py-1.5 rounded-md text-sm font-bold transition-colors pixel-font tracking-wide ${filter === 'all' ? 'bg-[#57534e] text-[#f5f5f4] border border-[#78716c]' : 'text-[#a8a29e] hover:bg-[#44403c]'}`}>FULL GARDEN</button>
@@ -747,7 +1173,7 @@
                                         </div>
                                         <div className="p-4">
                                             <div className="flex gap-3 mb-4">
-                                                <div className="shrink-0 pt-1 filter drop-shadow-sm">{getPlantVisual(plant.name, 2, status)}</div>
+                                                <div onClick={() => openEdit(plant)} className="shrink-0 pt-1 filter drop-shadow-sm cursor-pointer hover:scale-105 transition-transform"><PlantVisual name={plant.name} scale={2} status={status} /></div>
                                                 <div className="pr-14">
                                                     {plant.nickname ? (
                                                         <>
@@ -822,7 +1248,7 @@
                                                     {librarySuggestions.map((plant, idx) => (
                                                         <li key={idx} onClick={() => selectFromLibrary(plant)} className="p-2 hover:bg-[#d6d3d1] cursor-pointer border-b border-[#d6d3d1] last:border-0">
                                                             <div className="flex items-center gap-3">
-                                                                {getPlantVisual(plant.name, 1.2)}
+                                                                <PlantVisual name={plant.name} scale={1.2} status="healthy" />
                                                                 <div>
                                                                     <div className="font-bold text-[#292524] pixel-font tracking-wide">{plant.name}</div>
                                                                     <div className="text-[10px] text-[#57534e] uppercase font-bold tracking-wider font-mono">Water Base: {plant.waterFreq}d • Feed Base: {plant.fertilizerFreq}d</div>
@@ -835,71 +1261,71 @@
                                         </div>
                                     )}
                                     <form onSubmit={handleSavePlant} className="space-y-4 font-mono">
-                                        <div>
-                                            <label className="text-[10px] font-black text-[#78716c] uppercase tracking-widest pixel-font">Plant Type</label>
-                                            <input type="text" required className="w-full border-b-2 border-[#a8a29e] p-2 focus:border-[#78350f] outline-none text-lg font-bold text-[#292524] bg-transparent pixel-font" value={newPlant.name} onChange={(e) => setNewPlant({...newPlant, name: e.target.value})} />
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] font-black text-[#78716c] uppercase tracking-widest pixel-font">Nickname</label>
-                                            <input type="text" placeholder="e.g. 'Big Bertha'" className="w-full border-2 border-[#a8a29e] rounded-sm p-2 mt-1 text-sm bg-[#e7e5e4] text-slate-900 focus:bg-white focus:border-[#78350f] outline-none transition-colors font-bold" value={newPlant.nickname} onChange={(e) => setNewPlant({...newPlant, nickname: e.target.value})} />
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-4">
                                             <div>
-                                                <label className="text-[10px] font-black text-[#78716c] uppercase tracking-widest pixel-font">Location</label>
-                                                <input type="text" placeholder="e.g. Railing" className="w-full border-2 border-[#a8a29e] rounded-sm p-2 mt-1 text-sm bg-[#e7e5e4] text-slate-900 font-bold" value={newPlant.location} onChange={(e) => setNewPlant({...newPlant, location: e.target.value})} />
+                                                <label className="text-[10px] font-black text-[#78716c] uppercase tracking-widest pixel-font">Plant Type</label>
+                                                <input type="text" required className="w-full border-b-2 border-[#a8a29e] p-2 focus:border-[#78350f] outline-none text-lg font-bold text-[#292524] bg-transparent pixel-font" value={newPlant.name} onChange={(e) => setNewPlant({...newPlant, name: e.target.value})} />
                                             </div>
                                             <div>
-                                                <label className="text-[10px] font-black text-[#78716c] uppercase tracking-widest pixel-font">Pot Material</label>
-                                                <select className="w-full border-2 border-[#a8a29e] rounded-sm p-2 mt-1 text-sm bg-white text-slate-900 font-bold" value={newPlant.containerMaterial} onChange={(e) => handleContainerChange('containerMaterial', e.target.value)}>
-                                                    {CONTAINER_MATERIALS.map((opt, idx) => <option key={idx} value={opt.label}>{opt.label}</option>)}
+                                                <label className="text-[10px] font-black text-[#78716c] uppercase tracking-widest pixel-font">Nickname</label>
+                                                <input type="text" placeholder="e.g. 'Big Bertha'" className="w-full border-2 border-[#a8a29e] rounded-sm p-2 mt-1 text-sm bg-[#e7e5e4] text-slate-900 focus:bg-white focus:border-[#78350f] outline-none transition-colors font-bold" value={newPlant.nickname} onChange={(e) => setNewPlant({...newPlant, nickname: e.target.value})} />
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="text-[10px] font-black text-[#78716c] uppercase tracking-widest pixel-font">Location</label>
+                                                    <input type="text" placeholder="e.g. Railing" className="w-full border-2 border-[#a8a29e] rounded-sm p-2 mt-1 text-sm bg-[#e7e5e4] text-slate-900 font-bold" value={newPlant.location} onChange={(e) => setNewPlant({...newPlant, location: e.target.value})} />
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-black text-[#78716c] uppercase tracking-widest pixel-font">Pot Material</label>
+                                                    <select className="w-full border-2 border-[#a8a29e] rounded-sm p-2 mt-1 text-sm bg-white text-slate-900 font-bold" value={newPlant.containerMaterial} onChange={(e) => handleContainerChange('containerMaterial', e.target.value)}>
+                                                        {CONTAINER_MATERIALS.map((opt, idx) => <option key={idx} value={opt.label}>{opt.label}</option>)}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-black text-[#78716c] uppercase tracking-widest pixel-font">Pot Size</label>
+                                                <select className="w-full border-2 border-[#a8a29e] rounded-sm p-2 mt-1 text-sm bg-white text-slate-900 font-bold" value={newPlant.containerSize} onChange={(e) => handleContainerChange('containerSize', e.target.value)}>
+                                                    {CONTAINER_SIZES.map((opt, idx) => <option key={idx} value={opt.label}>{opt.label}</option>)}
                                                 </select>
                                             </div>
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] font-black text-[#78716c] uppercase tracking-widest pixel-font">Pot Size</label>
-                                            <select className="w-full border-2 border-[#a8a29e] rounded-sm p-2 mt-1 text-sm bg-white text-slate-900 font-bold" value={newPlant.containerSize} onChange={(e) => handleContainerChange('containerSize', e.target.value)}>
-                                                {CONTAINER_SIZES.map((opt, idx) => <option key={idx} value={opt.label}>{opt.label}</option>)}
-                                            </select>
-                                        </div>
-                                        <div className="bg-[#dbeafe] p-3 rounded-lg border-2 border-[#93c5fd]">
-                                            <div className="flex items-center gap-2 mb-2 text-[#1e40af] font-bold text-xs uppercase tracking-wide pixel-font">
-                                                <Droplets size={14} /> Water Schedule
-                                            </div>
-                                            <div className="flex gap-3 items-center">
-                                                <div className="flex items-center bg-white rounded-sm border border-[#93c5fd] px-2">
-                                                    <input type="number" min="1" className="w-12 p-2 text-center font-bold text-[#1e40af] outline-none pixel-font text-lg" value={newPlant.waterFreq} onChange={(e) => setNewPlant({...newPlant, waterFreq: e.target.value})} />
-                                                    <span className="text-xs text-[#3b82f6] font-bold mr-2 pixel-font">DAYS</span>
+                                            <div className="bg-[#dbeafe] p-3 rounded-lg border-2 border-[#93c5fd]">
+                                                <div className="flex items-center gap-2 mb-2 text-[#1e40af] font-bold text-xs uppercase tracking-wide pixel-font">
+                                                    <Droplets size={14} /> Water Schedule
                                                 </div>
-                                                <div className="flex-grow text-right">
-                                                    <label className="text-[10px] text-[#3b82f6] font-bold block mb-1 pixel-font">LAST WATERED</label>
-                                                    <input type="date" className="border border-[#93c5fd] rounded-sm p-1 text-xs text-[#1e40af] font-bold bg-white font-mono" value={newPlant.lastWatered} onChange={(e) => setNewPlant({...newPlant, lastWatered: e.target.value})} />
+                                                <div className="flex gap-3 items-center">
+                                                    <div className="flex items-center bg-white rounded-sm border border-[#93c5fd] px-2">
+                                                        <input type="number" min="1" className="w-12 p-2 text-center font-bold text-[#1e40af] outline-none pixel-font text-lg" value={newPlant.waterFreq} onChange={(e) => setNewPlant({...newPlant, waterFreq: e.target.value})} />
+                                                        <span className="text-xs text-[#3b82f6] font-bold mr-2 pixel-font">DAYS</span>
+                                                    </div>
+                                                    <div className="flex-grow text-right">
+                                                        <label className="text-[10px] text-[#3b82f6] font-bold block mb-1 pixel-font">LAST WATERED</label>
+                                                        <input type="date" className="border border-[#93c5fd] rounded-sm p-1 text-xs text-[#1e40af] font-bold bg-white font-mono" value={newPlant.lastWatered} onChange={(e) => setNewPlant({...newPlant, lastWatered: e.target.value})} />
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div className="bg-[#dcfce7] p-3 rounded-lg border-2 border-[#86efac]">
-                                            <div className="flex items-center gap-2 mb-2 text-[#166534] font-bold text-xs uppercase tracking-wide pixel-font">
-                                                <Utensils size={14} /> Feed Schedule
-                                            </div>
-                                            <div className="flex gap-3 items-center">
-                                                <div className="flex items-center bg-white rounded-sm border border-[#86efac] px-2">
-                                                    <input type="number" min="0" className="w-12 p-2 text-center font-bold text-[#166534] outline-none pixel-font text-lg" value={newPlant.fertilizerFreq} onChange={(e) => setNewPlant({...newPlant, fertilizerFreq: e.target.value})} />
-                                                    <span className="text-xs text-[#22c55e] font-bold mr-2 pixel-font">DAYS</span>
+                                            <div className="bg-[#dcfce7] p-3 rounded-lg border-2 border-[#86efac]">
+                                                <div className="flex items-center gap-2 mb-2 text-[#166534] font-bold text-xs uppercase tracking-wide pixel-font">
+                                                    <Utensils size={14} /> Feed Schedule
                                                 </div>
-                                                <div className="flex-grow text-right">
-                                                    <label className="text-[10px] text-[#22c55e] font-bold block mb-1 pixel-font">LAST FED</label>
-                                                    <input type="date" className="border border-[#86efac] rounded-sm p-1 text-xs text-[#166534] font-bold bg-white font-mono" value={newPlant.lastFertilized} onChange={(e) => setNewPlant({...newPlant, lastFertilized: e.target.value})} />
+                                                <div className="flex gap-3 items-center">
+                                                    <div className="flex items-center bg-white rounded-sm border border-[#86efac] px-2">
+                                                        <input type="number" min="0" className="w-12 p-2 text-center font-bold text-[#166534] outline-none pixel-font text-lg" value={newPlant.fertilizerFreq} onChange={(e) => setNewPlant({...newPlant, fertilizerFreq: e.target.value})} />
+                                                        <span className="text-xs text-[#22c55e] font-bold mr-2 pixel-font">DAYS</span>
+                                                    </div>
+                                                    <div className="flex-grow text-right">
+                                                        <label className="text-[10px] text-[#22c55e] font-bold block mb-1 pixel-font">LAST FED</label>
+                                                        <input type="date" className="border border-[#86efac] rounded-sm p-1 text-xs text-[#166534] font-bold bg-white font-mono" value={newPlant.lastFertilized} onChange={(e) => setNewPlant({...newPlant, lastFertilized: e.target.value})} />
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] font-black text-[#78716c] uppercase tracking-widest pixel-font">Notes</label>
-                                            <textarea className="w-full border-2 border-[#a8a29e] rounded-sm p-2 mt-1 text-sm h-20 resize-none bg-[#e7e5e4] text-slate-900 font-mono" value={newPlant.notes} onChange={(e) => setNewPlant({...newPlant, notes: e.target.value})}></textarea>
-                                        </div>
-                                        <div className="pb-6">
-                                            <button type="submit" className="w-full wood-btn py-3 rounded-sm text-xl pixel-font tracking-widest flex justify-center items-center gap-2">
-                                                <Save size={20} /> PLANT IT!
-                                            </button>
-                                        </div>
+                                            <div>
+                                                <label className="text-[10px] font-black text-[#78716c] uppercase tracking-widest pixel-font">Notes</label>
+                                                <textarea className="w-full border-2 border-[#a8a29e] rounded-sm p-2 mt-1 text-sm h-20 resize-none bg-[#e7e5e4] text-slate-900 font-mono" value={newPlant.notes} onChange={(e) => setNewPlant({...newPlant, notes: e.target.value})}></textarea>
+                                            </div>
+                                            <div className="pb-6">
+                                                <button type="submit" className="w-full wood-btn py-3 rounded-sm text-xl pixel-font tracking-widest flex justify-center items-center gap-2">
+                                                    <Save size={20} /> PLANT IT!
+                                                </button>
+                                            </div>
                                     </form>
                                 </div>
                             </div>
